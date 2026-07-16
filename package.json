@@ -2,6 +2,7 @@
   "name": "marswalk-prototypes",
   "private": true,
   "scripts": {
+    "build": "node scripts/build-all.mjs",
     "dev": "concurrently -n hub,wheel,scratch -c cyan,yellow,green \"npm:dev:hub\" \"npm:dev:wheel\" \"npm:dev:scratch\"",
     "dev:hub": "node scripts/dev-server.mjs",
     "dev:wheel": "VITE_BASE_PATH=/wheel/ npm --prefix apps/wheel run dev",
