@@ -18,6 +18,8 @@ const PORT = 4000;
 const PROXIES = {
   '/wheel': 'http://localhost:5173',
   '/scratch': 'http://localhost:5174',
+  '/runner': 'http://localhost:5175',
+  '/plinko': 'http://localhost:5176',
 };
 
 const MIME_TYPES = {
@@ -26,6 +28,8 @@ const MIME_TYPES = {
   '.js': 'application/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.json': 'application/json; charset=utf-8',
+  '.webp': 'image/webp',
+  '.png': 'image/png',
 };
 
 const proxy = httpProxy.createProxyServer({ ws: true, changeOrigin: true });

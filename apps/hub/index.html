@@ -18,16 +18,33 @@
     <span class="header__badge">internal demo</span>
   </header>
 
-  <main class="hero">
-    <p class="hero__eyebrow">Interactive Ad Tools — Prototype Suite</p>
-    <h1 class="hero__title">Four formats,<br />one ad engine</h1>
-    <p class="hero__subtitle">
-      Game mechanics for performance and brand campaigns in the DACH market:
-      FMCG, banking, travel, mobility.
-    </p>
-  </main>
+  <nav class="tabs" role="tablist" aria-label="Hub sections">
+    <button type="button" class="tabs__btn is-active" role="tab" id="tab-prototypes" aria-selected="true" aria-controls="panel-prototypes" data-tab="prototypes">
+      Prototypes
+    </button>
+    <button type="button" class="tabs__btn" role="tab" id="tab-ideas" aria-selected="false" aria-controls="panel-ideas" data-tab="ideas">
+      Mini-game ideas
+    </button>
+  </nav>
 
-  <section class="grid" id="grid" aria-label="Prototypes"></section>
+  <div id="panel-prototypes" class="panel" role="tabpanel" aria-labelledby="tab-prototypes">
+    <main class="hero">
+      <p class="hero__eyebrow">Interactive Ad Tools — Prototype Suite</p>
+      <h1 class="hero__title">Four formats,<br />one ad engine</h1>
+      <p class="hero__subtitle">
+        Game mechanics for performance and brand campaigns in the DACH market:
+        FMCG, banking, travel, mobility.
+      </p>
+    </main>
+
+    <section class="grid" id="grid" aria-label="Prototypes"></section>
+  </div>
+
+  <div id="panel-ideas" class="panel panel--hidden" role="tabpanel" aria-labelledby="tab-ideas" hidden>
+    <main class="hero" id="ideas-hero"></main>
+    <section class="spectrum" id="ideas-spectrum" aria-label="Capability spectrum"></section>
+    <section class="grid" id="ideas-grid" aria-label="Potential mini-games"></section>
+  </div>
 
   <footer class="footer">
     <span>marswalk.media internal — pet-project suite</span>
@@ -35,6 +52,7 @@
   </footer>
 
   <script src="prototypes.config.js"></script>
+  <script src="ideas.config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

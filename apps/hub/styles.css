@@ -106,6 +106,99 @@ body {
   max-width: 52ch;
 }
 
+.hero__note {
+  margin: 1rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  max-width: 60ch;
+  opacity: 0.9;
+}
+
+.tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 clamp(1.25rem, 5vw, 3.5rem);
+  margin-bottom: 0.5rem;
+}
+
+.tabs__btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.tabs__btn:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.tabs__btn.is-active {
+  color: #0a0a0f;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.panel--hidden {
+  display: none;
+}
+
+.spectrum {
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(1.25rem, 5vw, 3.5rem) clamp(1.25rem, 3vw, 2rem);
+  max-width: 920px;
+}
+
+.spectrum__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.spectrum__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.spectrum__item {
+  display: grid;
+  grid-template-columns: minmax(110px, 140px) 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+}
+
+.spectrum__label {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.spectrum__items {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
 .grid {
   position: relative;
   z-index: 1;
@@ -253,6 +346,66 @@ body {
 
 .card__doc:hover { color: var(--text); }
 
+.card--idea {
+  opacity: 1;
+  cursor: default;
+}
+
+.card--recommended {
+  border-color: color-mix(in srgb, var(--card-accent) 35%, var(--border));
+}
+
+.card__preview {
+  margin: -0.35rem -0.35rem 0.2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #08080c;
+  aspect-ratio: 3 / 4;
+  max-height: 220px;
+}
+
+.card__preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.card--idea .card__preview {
+  aspect-ratio: 16 / 10;
+  max-height: 180px;
+}
+
+.card__why {
+  margin: 0.85rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.card__why span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card-accent);
+}
+
+.card__stack--fit li {
+  border-color: color-mix(in srgb, var(--card-accent) 30%, var(--border));
+  color: color-mix(in srgb, var(--card-accent) 70%, var(--text));
+}
+
+.card__meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
 .footer {
   position: relative;
   z-index: 1;
@@ -268,4 +421,9 @@ body {
 
 @media (max-width: 480px) {
   .header__badge { display: none; }
+
+  .spectrum__item {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
 }

@@ -18,7 +18,11 @@ mkdirSync(`${ROOT}dist`);
 
 build('wheel', '/wheel/');
 build('scratch', '/scratch/');
+build('runner', '/runner/');
+build('plinko', '/plinko/');
 
 cpSync(`${ROOT}apps/hub`, `${ROOT}dist`, { recursive: true });
 cpSync(`${ROOT}apps/wheel/dist`, `${ROOT}dist/wheel`, { recursive: true });
 cpSync(`${ROOT}apps/scratch/dist`, `${ROOT}dist/scratch`, { recursive: true });
+cpSync(`${ROOT}apps/runner/dist`, `${ROOT}dist/runner`, { recursive: true });
+cpSync(`${ROOT}apps/plinko/dist`, `${ROOT}dist/plinko`, { recursive: true });
