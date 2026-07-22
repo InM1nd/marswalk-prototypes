@@ -9,12 +9,24 @@ interface LottoCanvasProps {
   onReady?: () => void;
   onRevealStart?: () => void;
   onRevealEnd?: (result: LottoResult) => void;
+  interactive?: boolean;
 }
 
-export function LottoCanvas({ config, result, onReady, onRevealStart, onRevealEnd }: LottoCanvasProps) {
+export function LottoCanvas({
+  config,
+  result,
+  onReady,
+  onRevealStart,
+  onRevealEnd,
+  interactive = true,
+}: LottoCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<LottoEngine | null>(null);
   const [ready, setReady] = useState(false);
+  const startRef = useRef(onRevealStart);
+  startRef.current = onRevealStart;
+  const endRef = useRef(onRevealEnd);
+  endRef.current = onRevealEnd;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -26,11 +38,11 @@ export function LottoCanvas({ config, result, onReady, onRevealStart, onRevealEn
         setReady(true);
         onReady?.();
       },
-      onRevealStart,
-      onRevealEnd,
+      onRevealStart: () => startRef.current?.(),
+      onRevealEnd: (r) => endRef.current?.(r),
     });
     engineRef.current = engine;
-    engine.mount();
+    void engine.mount();
 
     return () => {
       engine.destroy();
@@ -40,12 +52,15 @@ export function LottoCanvas({ config, result, onReady, onRevealStart, onRevealEn
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.campaignId]);
 
-  // Re-arms the board with a freshly resolved grid whenever `result` changes
-  // (new round). Guarded on `ready` so this never races the still-in-flight
-  // mount() — same pattern as ScratchCanvas/WheelCanvas.
   useEffect(() => {
     if (ready) engineRef.current?.reveal(result);
   }, [ready, result]);
 
-  return <div ref={containerRef} className="wheel-canvas" />;
+  return (
+    <div
+      ref={containerRef}
+      className="scratch-canvas scratch-canvas--lotto"
+      style={{ pointerEvents: interactive ? 'auto' : 'none' }}
+    />
+  );
 }

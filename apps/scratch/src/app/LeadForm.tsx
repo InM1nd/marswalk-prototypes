@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { GameConfig } from './reducer';
@@ -21,8 +21,11 @@ export function LeadForm({ config, submitting, errorMessage, onSubmit }: LeadFor
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<LeadFormValues>({ resolver: zodResolver(LeadFormSchema) });
+
+  const consent = useWatch({ control, name: 'consent' });
 
   return (
     <form className="lead-form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -40,9 +43,13 @@ export function LeadForm({ config, submitting, errorMessage, onSubmit }: LeadFor
       </label>
       {errors.consent && <em className="lead-form__error">{errors.consent.message}</em>}
 
+      {config.leadForm.webhookUrl && (
+        <p className="lead-form__pipeline">Would POST to {config.leadForm.webhookUrl}</p>
+      )}
+
       {errorMessage && <p className="lead-form__error lead-form__error--submit">{errorMessage}</p>}
 
-      <button type="submit" className="btn btn--primary" disabled={submitting}>
+      <button type="submit" className="btn btn--primary" disabled={submitting || consent !== true}>
         {submitting ? 'Sending…' : config.copy.leadFormSubmitLabel}
       </button>
     </form>

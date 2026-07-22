@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-// Trimmed to what the core spin -> result -> lead loop needs.
-// Sound, multi-field lead form, and logo image are deferred (see prototype-1-wheel.md §6).
 export const WheelSegmentSchema = z.object({
   id: z.string(),
   label: z.string().max(20),
@@ -21,6 +19,9 @@ export const CampaignConfigSchema = z.object({
     centerLabel: z.string(),
     primaryColor: z.string(),
     secondaryColor: z.string(),
+    logoUrl: z.string().optional(),
+    fontFamily: z.string().default('system-ui, sans-serif'),
+    backgroundHint: z.string().optional(),
   }),
   wheel: z.object({
     segments: z.array(WheelSegmentSchema).min(4).max(12),
@@ -35,10 +36,24 @@ export const CampaignConfigSchema = z.object({
     resultLoseTitle: z.string(),
     leadFormTitle: z.string(),
     leadFormSubmitLabel: z.string().default('Get my prize'),
+    successTitle: z.string().default("You're all set"),
+    successBody: z
+      .string()
+      .default('Prize {code} logged for {email} — ready for CRM webhook.'),
+    claimButtonLabel: z.string().default('Claim it'),
+    continueButtonLabel: z.string().default('Continue'),
   }),
   leadForm: z.object({
     consentText: z.string(),
+    webhookUrl: z.string().url().optional(),
   }),
+  sound: z
+    .object({
+      enabled: z.boolean().default(true),
+      tickUrl: z.string().optional(),
+      winUrl: z.string().optional(),
+    })
+    .default({ enabled: true }),
 });
 
 export type CampaignConfig = z.infer<typeof CampaignConfigSchema>;

@@ -19,6 +19,7 @@ export function PlinkoPage() {
 
       <header className="hud">
         <div className="hud__brand">
+          <a className="hub-link" href="/">← Hub</a>
           <span className="hud__mark">MW</span>
           <span>PLINKO · 3D</span>
         </div>

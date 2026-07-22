@@ -3,22 +3,6 @@
 
 window.GAME_IDEAS = [
   {
-    id: 'plinko',
-    accent: '#ff9a3d',
-    icon: '🎱',
-    title: 'Brand Plinko',
-    subtitle: 'Prize drop',
-    description:
-      'A puck falls through pegs into branded prize slots. Hypnotic to watch, feels fair, and reads instantly on a booth screen or a paid-social landing page.',
-    why: 'Same lead-capture job as a wheel, but a different silhouette — strong upsell when the client already “has a spinner”.',
-    fit: ['Events', 'Ads', 'Lead gen'],
-    stack: ['pixi.js', 'matter.js', 'React'],
-    effort: 'low',
-    wow: 'high',
-    recommended: true,
-    image: 'ideas/idea-plinko.webp',
-  },
-  {
     id: 'catch-drop',
     accent: '#ff7a1a',
     icon: '🌧️',
@@ -203,11 +187,11 @@ window.GAME_IDEAS_META = {
   subtitle:
     'Beyond the shipped prototypes — a menu of mini-games and event tools we can build for clients. Each one is a configurable engagement layer: short session, brandable skin, lead or share payoff — and a reason to raise the campaign line item.',
   spectrum: [
-    { label: 'Lucky', items: 'Wheel, Scratch, Plinko' },
+    { label: 'Lucky', items: 'Wheel, Scratch (shipped); more variants' },
     { label: 'Skill', items: 'Catch, Stack, Pour, Aim' },
     { label: 'Social / UGC', items: 'Booth, Duel, Rhythm share-card' },
     { label: 'Premium 3D', items: 'Configurator, Quiz result' },
     { label: 'Event hardware', items: 'Shake, Crowd meter, Kiosk mode' },
   ],
-  note: 'Recommended cards are the fastest next demos on our current Vite / React / Pixi stack.',
+  note: 'Plinko shipped as a live prototype. Recommended cards are the fastest next demos on our current stack.',
 };

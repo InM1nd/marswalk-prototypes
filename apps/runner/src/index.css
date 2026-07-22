@@ -36,10 +36,27 @@ body {
 }
 
 .app {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   height: 100%;
+}
+
+.hub-link {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  z-index: 20;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-ui, inherit);
+}
+
+.hub-link:hover {
+  color: #fff;
 }
 
 .app__stage {

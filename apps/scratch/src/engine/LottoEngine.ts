@@ -2,6 +2,7 @@ import { Application, Container, Graphics, RenderTexture, Sprite, Text } from 'p
 import gsap from 'gsap';
 import type { LottoConfig, LottoSymbol } from '../config/lottoSchema';
 import type { LottoResult } from '../lib/lottoResolver';
+import { buildFoilCoverArt } from './foilCover';
 
 export interface LottoEngineOptions {
   container: HTMLElement;
@@ -55,6 +56,8 @@ export class LottoEngine {
   private activePointerId: number | null = null;
   private activeTileIndex: number | null = null;
   private lastLocalPoint: { x: number; y: number } | null = null;
+  private sparkleRoot: Container | null = null;
+  private iconByTile = new Map<number, Text>();
 
   constructor(options: LottoEngineOptions) {
     this.options = options;
@@ -106,6 +109,8 @@ export class LottoEngine {
 
     for (const tile of this.tiles) tile.coverTexture.destroy(true);
     app.stage.removeChildren();
+    this.iconByTile.clear();
+    this.sparkleRoot = new Container();
 
     const { rows, cols } = this.options.config.grid;
     const tileSize = Math.min((width - TILE_GAP * (cols + 1)) / cols, (height - TILE_GAP * (rows + 1)) / rows);
@@ -119,29 +124,44 @@ export class LottoEngine {
       const col = index % cols;
       const x = originX + TILE_GAP + col * (tileSize + TILE_GAP);
       const y = originY + TILE_GAP + row * (tileSize + TILE_GAP);
-      return this.buildTile(symbolId, x, y, tileSize);
+      return this.buildTile(symbolId, x, y, tileSize, index);
     });
+    if (this.sparkleRoot) app.stage.addChild(this.sparkleRoot);
   }
 
-  private buildTile(symbolId: string, x: number, y: number, size: number): Tile {
+  private buildTile(symbolId: string, x: number, y: number, size: number, index: number): Tile {
     const app = this.app!;
     const symbol = this.symbolFor(symbolId);
+    const { branding } = this.options.config;
 
     const prizeLayer = new Container();
     prizeLayer.x = x;
     prizeLayer.y = y;
-    prizeLayer.addChild(new Graphics().roundRect(0, 0, size, size, 10).fill(this.options.config.branding.primaryColor));
+    prizeLayer.addChild(new Graphics().roundRect(0, 0, size, size, 10).fill(branding.primaryColor));
+    prizeLayer.addChild(
+      new Graphics().roundRect(3, 3, size - 6, size - 6, 8).stroke({ width: 1, color: 0xffffff, alpha: 0.2 }),
+    );
     const icon = new Text({ text: symbol.icon, style: { fontSize: size * 0.5 } });
     icon.anchor.set(0.5);
     icon.x = size / 2;
     icon.y = size / 2;
     prizeLayer.addChild(icon);
+    this.iconByTile.set(index, icon);
     app.stage.addChild(prizeLayer);
 
     const coverTexture = RenderTexture.create({ width: size, height: size });
-    const coverArt = new Graphics().roundRect(0, 0, size, size, 10).fill(this.options.config.branding.secondaryColor);
+    const coverArt = buildFoilCoverArt({
+      width: size,
+      height: size,
+      baseColor: branding.secondaryColor,
+      accentColor: branding.primaryColor,
+      cornerRadius: 10,
+      hint: size >= 64 ? 'SCRATCH' : undefined,
+      hintSize: Math.max(8, size * 0.14),
+      watermark: branding.centerLabel,
+    });
     app.renderer.render({ container: coverArt, target: coverTexture, clear: true });
-    coverArt.destroy();
+    coverArt.destroy({ children: true });
 
     const coverSprite = new Sprite(coverTexture);
     coverSprite.x = x;
@@ -239,43 +259,55 @@ export class LottoEngine {
     }
 
     if (this.lastLocalPoint) {
-      this.eraseLine(tile, this.lastLocalPoint, local);
+      this.softEraseLine(tile, this.lastLocalPoint, local);
     } else {
-      this.stamp(tile, local);
+      this.softStamp(tile, local);
     }
+    this.spawnSparkles(tile.x + local.x, tile.y + local.y);
     this.lastLocalPoint = local;
 
     this.checkTileProgress(tile);
   }
 
-  private stamp(tile: Tile, point: { x: number; y: number }): void {
+  private softStamp(tile: Tile, point: { x: number; y: number }): void {
     const brush = this.eraserBrush;
     brush.clear();
     brush.circle(point.x, point.y, ERASER_RADIUS).fill(0xffffff);
+    for (const [ox, oy] of [[5, -4], [-4, 3], [3, 5], [-5, -2]]) {
+      brush.circle(point.x + ox, point.y + oy, ERASER_RADIUS * 0.4).fill(0xffffff);
+    }
     brush.blendMode = 'erase';
     this.app!.renderer.render({ container: this.eraserRoot, target: tile.coverTexture, clear: false });
     this.markCellsNear(tile, point.x, point.y);
   }
 
-  private eraseLine(tile: Tile, from: { x: number; y: number }, to: { x: number; y: number }): void {
-    const brush = this.eraserBrush;
-    brush.clear();
-    brush.moveTo(from.x, from.y).lineTo(to.x, to.y).stroke({
-      width: ERASER_RADIUS * 2,
-      color: 0xffffff,
-      cap: 'round',
-      join: 'round',
-    });
-    brush.blendMode = 'erase';
-    this.app!.renderer.render({ container: this.eraserRoot, target: tile.coverTexture, clear: false });
-
+  private softEraseLine(tile: Tile, from: { x: number; y: number }, to: { x: number; y: number }): void {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const length = Math.sqrt(dx * dx + dy * dy);
     const steps = Math.max(1, Math.ceil(length / (CELL_SIZE / 2)));
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
-      this.markCellsNear(tile, from.x + dx * t, from.y + dy * t);
+      this.softStamp(tile, { x: from.x + dx * t, y: from.y + dy * t });
+    }
+  }
+
+  private spawnSparkles(x: number, y: number): void {
+    const root = this.sparkleRoot;
+    if (!root) return;
+    for (let i = 0; i < 2; i++) {
+      const flake = new Graphics()
+        .circle(0, 0, 1 + Math.random() * 1.5)
+        .fill({ color: 0xffffff, alpha: 0.85 });
+      flake.x = x + (Math.random() - 0.5) * 10;
+      flake.y = y + (Math.random() - 0.5) * 10;
+      root.addChild(flake);
+      gsap.to(flake, {
+        y: flake.y + 8 + Math.random() * 10,
+        alpha: 0,
+        duration: 0.28,
+        onComplete: () => flake.destroy(),
+      });
     }
   }
 
@@ -309,9 +341,25 @@ export class LottoEngine {
       onComplete: () => {
         this.revealedCount += 1;
         if (this.revealedCount === this.tiles.length && this.result) {
+          this.highlightMatches();
           this.options.onRevealEnd?.(this.result);
         }
       },
+    });
+  }
+
+  private highlightMatches(): void {
+    const result = this.result;
+    if (!result?.isWin || !result.symbol) return;
+    this.tiles.forEach((tile, index) => {
+      if (tile.symbolId !== result.symbol!.id) return;
+      const icon = this.iconByTile.get(index);
+      if (!icon) return;
+      gsap.fromTo(
+        icon.scale,
+        { x: 1, y: 1 },
+        { x: 1.25, y: 1.25, duration: 0.22, yoyo: true, repeat: 3, ease: 'power2.out' },
+      );
     });
   }
 
@@ -325,5 +373,7 @@ export class LottoEngine {
     this.app?.destroy(true, { children: true });
     this.app = null;
     this.tiles = [];
+    this.sparkleRoot = null;
+    this.iconByTile.clear();
   }
 }

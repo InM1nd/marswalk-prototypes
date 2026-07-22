@@ -1,10 +1,9 @@
 // Local dev entry point: serves the static hub at "/" and reverse-proxies
-// each prototype's own dev server under its own path prefix (e.g. /wheel),
+// each prototype's own Vite dev server under its path prefix (e.g. /wheel),
 // so everything lives on one origin/port instead of one port per prototype.
 //
-// This mirrors how production will route once each prototype is its own
-// Vercel project behind the hub (path-based rewrites) — see
-// prototype-1-wheel.md §7 for the deploy-time equivalent.
+// Mirrors production routing in vercel.ts — one Vercel project, path-based
+// rewrites to each built app under dist/{wheel,scratch,runner,plinko}.
 import http from 'node:http';
 import httpProxy from 'http-proxy';
 import { createReadStream, existsSync, statSync } from 'node:fs';

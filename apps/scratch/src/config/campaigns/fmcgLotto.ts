@@ -4,8 +4,12 @@ import { LottoConfigSchema } from '../lottoSchema';
 const raw: z.input<typeof LottoConfigSchema> = {
   campaignId: 'fmcg-lotto-demo',
   branding: {
+    centerLabel: 'GO',
     primaryColor: '#ff6a3d',
     secondaryColor: '#141419',
+    logoUrl: `${import.meta.env.BASE_URL}assets/fmcg/logo.svg`,
+    fontFamily: 'system-ui, sans-serif',
+    backgroundHint: '#1a0e0a',
   },
   grid: {
     rows: 3,
@@ -27,10 +31,16 @@ const raw: z.input<typeof LottoConfigSchema> = {
     resultLoseDescription: 'No three symbols matched — better luck on the next card.',
     leadFormTitle: 'Where should we send your prize?',
     leadFormSubmitLabel: 'Get my prize',
+    successTitle: 'Prize locked in',
+    successBody: 'Code {code} logged for {email} — ready for CRM webhook.',
+    claimButtonLabel: 'Claim it',
+    continueButtonLabel: 'Try another day',
   },
   leadForm: {
     consentText: 'I agree to be contacted with my prize and occasional marketing emails. I can unsubscribe anytime.',
+    webhookUrl: 'https://hooks.example.com/leads/fmcg-lotto',
   },
+  sound: { enabled: true },
 };
 
 export const fmcgLottoConfig = LottoConfigSchema.parse(raw);

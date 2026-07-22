@@ -4,9 +4,12 @@ import { CampaignConfigSchema } from '../schema';
 const raw: z.input<typeof CampaignConfigSchema> = {
   campaignId: 'fmcg-demo',
   branding: {
-    centerLabel: 'SPIN',
+    centerLabel: 'GO',
     primaryColor: '#ff7a1a',
     secondaryColor: '#141419',
+    logoUrl: `${import.meta.env.BASE_URL}assets/fmcg/logo.svg`,
+    fontFamily: 'system-ui, sans-serif',
+    backgroundHint: '#1a1008',
   },
   wheel: {
     spinDurationMs: 4200,
@@ -24,14 +27,20 @@ const raw: z.input<typeof CampaignConfigSchema> = {
     title: 'Spin to win',
     subtitle: 'One spin, one prize — good for your next order.',
     spinButtonLabel: 'Spin the wheel',
-    resultWinTitle: "You won!",
+    resultWinTitle: 'You won!',
     resultLoseTitle: 'So close — try again next time',
     leadFormTitle: 'Where should we send your prize?',
     leadFormSubmitLabel: 'Get my prize',
+    successTitle: 'Prize locked in',
+    successBody: 'Code {code} logged for {email} — ready for CRM webhook.',
+    claimButtonLabel: 'Claim it',
+    continueButtonLabel: 'Try another day',
   },
   leadForm: {
     consentText: 'I agree to be contacted with my prize and occasional marketing emails. I can unsubscribe anytime.',
+    webhookUrl: 'https://hooks.example.com/leads/fmcg-demo',
   },
+  sound: { enabled: true },
 };
 
 export const fmcgDemoConfig = CampaignConfigSchema.parse(raw);

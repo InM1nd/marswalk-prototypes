@@ -27,6 +27,11 @@ export const PlinkoConfigSchema = z.object({
     dropButtonLabel: z.string().default('DROP'),
     resultTitle: z.string(),
     retryButtonLabel: z.string().default('DROP AGAIN'),
+    leadFormTitle: z.string().default('Where should we send your prize?'),
+    leadFormSubmitLabel: z.string().default('Get my prize'),
+  }),
+  leadForm: z.object({
+    consentText: z.string(),
   }),
 });
 

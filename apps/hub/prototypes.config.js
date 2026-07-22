@@ -5,6 +5,8 @@
 // status: 'planned' | 'in_progress' | 'live'
 //   'live' — card is clickable, links to url
 //   otherwise — card is disabled, shows status badge
+//
+// Relative urls work with the monorepo Vercel rewrites (vercel.ts).
 
 window.PROTOTYPES = [
   {
@@ -15,10 +17,8 @@ window.PROTOTYPES = [
     subtitle: 'Spin mechanic',
     description: 'Branded performance game with lead capture: spin the wheel — get a promo code.',
     stack: ['pixi.js', 'gsap', 'React'],
-    // TODO: swap to the deployed Vercel URL and flip to 'live' once prototype-1-wheel.md §7 is done.
-    status: 'in_progress',
+    status: 'live',
     url: '/wheel/',
-    docHref: '../../prototype-1-wheel.md',
   },
   {
     id: 'scratch',
@@ -28,10 +28,8 @@ window.PROTOTYPES = [
     subtitle: 'Scratch mechanic',
     description: 'Drag to scratch off the cover and reveal your prize — standalone lead-capture game.',
     stack: ['pixi.js', 'gsap', 'React'],
-    // TODO: swap to the deployed Vercel URL and flip to 'live' once prototype-1-wheel.md §7 is done.
-    status: 'in_progress',
+    status: 'live',
     url: '/scratch/',
-    docHref: '../../prototype-1-wheel.md',
   },
   {
     id: 'lotto',
@@ -41,10 +39,8 @@ window.PROTOTYPES = [
     subtitle: 'Match-3 grid',
     description: 'Scratch each tile in a 3x3 grid — find 3 matching symbols to win a prize.',
     stack: ['pixi.js', 'gsap', 'React'],
-    // TODO: swap to the deployed Vercel URL and flip to 'live' once prototype-1-wheel.md §7 is done.
-    status: 'in_progress',
+    status: 'live',
     url: '/scratch/lotto',
-    docHref: '../../prototype-1-wheel.md',
   },
   {
     id: 'runner',
@@ -54,10 +50,8 @@ window.PROTOTYPES = [
     subtitle: 'Endless runner',
     description: 'Physics-based arcade: jump obstacles, collect coins, real-time branding.',
     stack: ['pixi.js', 'matter.js', 'zustand', 'React'],
-    // TODO: swap to the deployed Vercel URL and flip to 'live' once prototype-2-runner.md §7 is done.
-    status: 'in_progress',
+    status: 'live',
     url: '/runner/',
-    docHref: '../../prototype-2-runner.md',
   },
   {
     id: 'plinko',
@@ -67,9 +61,8 @@ window.PROTOTYPES = [
     subtitle: 'Prize drop',
     description: 'Three.js / Rapier board: drop the puck through pegs, land a branded prize slot.',
     stack: ['three.js', 'R3F', 'Rapier', 'React'],
-    status: 'in_progress',
+    status: 'live',
     url: '/plinko/',
-    docHref: '../../apps/hub/ideas.config.js',
   },
   {
     id: 'configurator',
@@ -81,7 +74,6 @@ window.PROTOTYPES = [
     stack: ['three.js', 'R3F', 'drei'],
     status: 'planned',
     url: '#',
-    docHref: '../../prototype-3-configurator.md',
   },
   {
     id: 'quiz',
@@ -93,6 +85,5 @@ window.PROTOTYPES = [
     stack: ['Next.js', 'three.js', 'framer-motion'],
     status: 'planned',
     url: '#',
-    docHref: '../../prototype-4-quiz.md',
   },
 ];

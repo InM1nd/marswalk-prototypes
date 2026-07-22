@@ -1,6 +1,6 @@
-// Production build: builds wheel and scratch as standalone Vite apps (each
-// under its own base path), then assembles hub + both builds into one
-// static dist/ so the whole thing ships as a single Vercel project.
+// Production build: builds each Vite prototype under its own base path
+// (wheel, scratch, runner, plinko), then assembles hub + all app builds into
+// one static dist/ so the suite ships as a single Vercel project (see vercel.ts).
 import { execSync } from 'node:child_process';
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

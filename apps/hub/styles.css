@@ -114,6 +114,60 @@ body {
   opacity: 0.9;
 }
 
+.pitch {
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(1.25rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 2.5rem);
+  max-width: 920px;
+}
+
+.pitch__thesis {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  max-width: 48ch;
+}
+
+.pitch__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.pitch__card {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+}
+
+.pitch__card--planned {
+  opacity: 0.72;
+}
+
+.pitch__label {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pitch__name {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.pitch__meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
 .tabs {
   position: relative;
   z-index: 1;

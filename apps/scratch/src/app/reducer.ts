@@ -12,7 +12,12 @@ export interface ResolvedPrize {
 
 export interface GameConfig {
   campaignId: string;
-  branding: { primaryColor: string };
+  branding: {
+    primaryColor: string;
+    secondaryColor?: string;
+    fontFamily?: string;
+    backgroundHint?: string;
+  };
   copy: {
     title: string;
     subtitle: string;
@@ -20,8 +25,16 @@ export interface GameConfig {
     resultLoseTitle: string;
     leadFormTitle: string;
     leadFormSubmitLabel: string;
+    successTitle?: string;
+    successBody?: string;
+    claimButtonLabel?: string;
+    continueButtonLabel?: string;
   };
-  leadForm: { consentText: string };
+  leadForm: {
+    consentText: string;
+    webhookUrl?: string;
+  };
+  sound?: { enabled?: boolean };
 }
 
 export type AppState =

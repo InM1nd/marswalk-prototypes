@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
 import type { CampaignConfig, WheelSegment } from '../config/schema';
+import { track } from '../lib/analytics';
+import { playWin } from '../lib/sound';
 
 interface ResultModalProps {
   config: CampaignConfig;
@@ -10,6 +13,36 @@ interface ResultModalProps {
 export function ResultModal({ config, segment, onContinue }: ResultModalProps) {
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    track('spin_result', {
+      campaignId: config.campaignId,
+      segmentId: segment.id,
+      isWin: segment.prize.isWin,
+    });
+    if (!segment.prize.isWin) return;
+
+    playWin();
+    const end = Date.now() + 900;
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: [config.branding.primaryColor, config.branding.secondaryColor, '#ffffff'],
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: [config.branding.primaryColor, config.branding.secondaryColor, '#ffffff'],
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, [segment, config.campaignId, config.branding]);
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(segment.prize.code);
     setCopied(true);
@@ -17,8 +50,8 @@ export function ResultModal({ config, segment, onContinue }: ResultModalProps) {
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
+    <div className={`modal-backdrop${segment.prize.isWin ? ' modal-backdrop--win' : ''}`}>
+      <div className="modal" role="dialog" aria-modal="true">
         <h2 className="modal__title">
           {segment.prize.isWin ? config.copy.resultWinTitle : config.copy.resultLoseTitle}
         </h2>
@@ -32,7 +65,7 @@ export function ResultModal({ config, segment, onContinue }: ResultModalProps) {
         )}
 
         <button type="button" className="btn btn--primary" onClick={onContinue}>
-          {segment.prize.isWin ? 'Claim it' : 'Continue'}
+          {segment.prize.isWin ? config.copy.claimButtonLabel : config.copy.continueButtonLabel}
         </button>
       </div>
     </div>

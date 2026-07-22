@@ -8,12 +8,28 @@ interface ScratchCanvasProps {
   onReady?: () => void;
   onRevealStart?: () => void;
   onRevealEnd?: (segment: PrizeSlot) => void;
+  onScratchProgress?: (percent: number) => void;
+  interactive?: boolean;
 }
 
-export function ScratchCanvas({ config, segmentIndex, onReady, onRevealStart, onRevealEnd }: ScratchCanvasProps) {
+export function ScratchCanvas({
+  config,
+  segmentIndex,
+  onReady,
+  onRevealStart,
+  onRevealEnd,
+  onScratchProgress,
+  interactive = true,
+}: ScratchCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ScratchEngine | null>(null);
   const [ready, setReady] = useState(false);
+  const progressRef = useRef(onScratchProgress);
+  progressRef.current = onScratchProgress;
+  const startRef = useRef(onRevealStart);
+  startRef.current = onRevealStart;
+  const endRef = useRef(onRevealEnd);
+  endRef.current = onRevealEnd;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -25,11 +41,12 @@ export function ScratchCanvas({ config, segmentIndex, onReady, onRevealStart, on
         setReady(true);
         onReady?.();
       },
-      onRevealStart,
-      onRevealEnd,
+      onRevealStart: () => startRef.current?.(),
+      onRevealEnd: (segment) => endRef.current?.(segment),
+      onScratchProgress: (p) => progressRef.current?.(p),
     });
     engineRef.current = engine;
-    engine.mount();
+    void engine.mount();
 
     return () => {
       engine.destroy();
@@ -39,12 +56,19 @@ export function ScratchCanvas({ config, segmentIndex, onReady, onRevealStart, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.campaignId]);
 
-  // Re-arms the card (new prize, fresh cover) whenever the resolved segment
-  // changes — e.g. a new round after "Play again". Guarded on `ready` so this
-  // never races the still-in-flight mount() (see WheelCanvas/App for the same pattern).
   useEffect(() => {
     if (ready) engineRef.current?.reveal(segmentIndex);
   }, [ready, segmentIndex]);
 
-  return <div ref={containerRef} className="wheel-canvas" />;
+  useEffect(() => {
+    if (ready) engineRef.current?.updateConfig(config);
+  }, [ready, config]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="scratch-canvas"
+      style={{ pointerEvents: interactive ? 'auto' : 'none' }}
+    />
+  );
 }

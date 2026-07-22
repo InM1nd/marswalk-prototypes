@@ -35,7 +35,6 @@ function renderCard(proto) {
     </ul>
     <div class="card__footer">
       <span class="card__cta">${isClickable ? 'Open demo →' : 'Coming soon'}</span>
-      <a class="card__doc" href="${proto.docHref}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Plan →</a>
     </div>
   `;
 
@@ -118,26 +117,25 @@ function renderIdeas() {
   document.getElementById('ideas-grid').replaceChildren(...ideas.map(renderIdeaCard));
 }
 
+const TABS = ['prototypes', 'ideas', 'metrics'];
+
 function setTab(tab) {
-  const isPrototypes = tab === 'prototypes';
-  const protoPanel = document.getElementById('panel-prototypes');
-  const ideasPanel = document.getElementById('panel-ideas');
-  const protoBtn = document.getElementById('tab-prototypes');
-  const ideasBtn = document.getElementById('tab-ideas');
+  if (!TABS.includes(tab)) tab = TABS[0];
 
-  protoPanel.hidden = !isPrototypes;
-  protoPanel.classList.toggle('panel--hidden', !isPrototypes);
-  ideasPanel.hidden = isPrototypes;
-  ideasPanel.classList.toggle('panel--hidden', isPrototypes);
+  TABS.forEach((id) => {
+    const panel = document.getElementById(`panel-${id}`);
+    const btn = document.getElementById(`tab-${id}`);
+    const isActive = id === tab;
 
-  protoBtn.classList.toggle('is-active', isPrototypes);
-  ideasBtn.classList.toggle('is-active', !isPrototypes);
-  protoBtn.setAttribute('aria-selected', String(isPrototypes));
-  ideasBtn.setAttribute('aria-selected', String(!isPrototypes));
+    panel.hidden = !isActive;
+    panel.classList.toggle('panel--hidden', !isActive);
+    btn.classList.toggle('is-active', isActive);
+    btn.setAttribute('aria-selected', String(isActive));
+  });
 
   const url = new URL(window.location.href);
-  if (isPrototypes) url.searchParams.delete('tab');
-  else url.searchParams.set('tab', 'ideas');
+  if (tab === TABS[0]) url.searchParams.delete('tab');
+  else url.searchParams.set('tab', tab);
   window.history.replaceState({}, '', url);
 }
 
@@ -152,8 +150,7 @@ function render() {
   renderIdeas();
   bindTabs();
 
-  const initial = new URLSearchParams(window.location.search).get('tab') === 'ideas' ? 'ideas' : 'prototypes';
-  setTab(initial);
+  setTab(new URLSearchParams(window.location.search).get('tab'));
 
   document.getElementById('footer-date').textContent = new Date().toLocaleDateString('en-US', {
     year: 'numeric',

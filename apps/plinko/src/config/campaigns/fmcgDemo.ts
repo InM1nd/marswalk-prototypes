@@ -27,5 +27,10 @@ export const fmcgDemoConfig: PlinkoConfig = {
     dropButtonLabel: 'DROP THE PUCK',
     resultTitle: 'YOU LANDED',
     retryButtonLabel: 'DROP AGAIN',
+    leadFormTitle: 'Where should we send your prize?',
+    leadFormSubmitLabel: 'Get my prize',
+  },
+  leadForm: {
+    consentText: 'I agree to be contacted with my prize and occasional marketing emails. I can unsubscribe anytime.',
   },
 };

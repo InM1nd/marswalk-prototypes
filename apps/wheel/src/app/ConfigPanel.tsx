@@ -20,6 +20,12 @@ function newSegment(): WheelSegment {
   };
 }
 
+function weightPercent(segments: WheelSegment[], index: number): string {
+  const total = segments.reduce((sum, s) => sum + s.weight, 0);
+  if (total <= 0) return '0%';
+  return `${Math.round((segments[index].weight / total) * 100)}%`;
+}
+
 export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
   const updateBranding = (patch: Partial<CampaignConfig['branding']>) =>
     onChange({ ...config, branding: { ...config.branding, ...patch } });
@@ -29,6 +35,9 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
 
   const updateLeadForm = (patch: Partial<CampaignConfig['leadForm']>) =>
     onChange({ ...config, leadForm: { ...config.leadForm, ...patch } });
+
+  const updateWheel = (patch: Partial<CampaignConfig['wheel']>) =>
+    onChange({ ...config, wheel: { ...config.wheel, ...patch } });
 
   const updateSegment = (index: number, patch: Partial<WheelSegment>) => {
     const segments = config.wheel.segments.map((s, i) => (i === index ? { ...s, ...patch } : s));
@@ -70,6 +79,39 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
             <input type="text" value={config.branding.centerLabel} onChange={(e) => updateBranding({ centerLabel: e.target.value })} />
           </label>
         </div>
+        <label className="config-panel__field">
+          <span>Logo URL</span>
+          <input
+            type="text"
+            value={config.branding.logoUrl ?? ''}
+            placeholder={`${import.meta.env.BASE_URL}assets/.../logo.svg`}
+            onChange={(e) => updateBranding({ logoUrl: e.target.value || undefined })}
+          />
+          <em className="config-panel__hint">Optional hub image — leave empty to use center label text.</em>
+        </label>
+        <label className="config-panel__field">
+          <span>Font family</span>
+          <input
+            type="text"
+            value={config.branding.fontFamily}
+            onChange={(e) => updateBranding({ fontFamily: e.target.value })}
+          />
+        </label>
+      </section>
+
+      <section className="config-panel__section">
+        <h3 className="config-panel__heading">Spin feel</h3>
+        <label className="config-panel__field">
+          <span>Duration {config.wheel.spinDurationMs}ms</span>
+          <input
+            type="range"
+            min={2000}
+            max={8000}
+            step={100}
+            value={config.wheel.spinDurationMs}
+            onChange={(e) => updateWheel({ spinDurationMs: Number(e.target.value) })}
+          />
+        </label>
       </section>
 
       <section className="config-panel__section">
@@ -102,6 +144,9 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
           <span>Consent text</span>
           <textarea rows={2} value={config.leadForm.consentText} onChange={(e) => updateLeadForm({ consentText: e.target.value })} />
         </label>
+        {config.leadForm.webhookUrl && (
+          <p className="config-panel__hint">Webhook (demo): {config.leadForm.webhookUrl}</p>
+        )}
       </section>
 
       <section className="config-panel__section">
@@ -134,6 +179,9 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
               onChange={(e) => updateSegment(i, { weight: Number(e.target.value) })}
               aria-label="Segment weight"
             />
+            <span className="config-panel__weight-pct" title="Normalized win chance">
+              {weightPercent(config.wheel.segments, i)}
+            </span>
             <label className="config-panel__win-toggle">
               <input
                 type="checkbox"
@@ -143,14 +191,24 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
               Win
             </label>
             {segment.prize.isWin && (
-              <input
-                type="text"
-                className="config-panel__segment-code"
-                placeholder="Promo code"
-                value={segment.prize.code}
-                onChange={(e) => updateSegmentPrize(i, { code: e.target.value })}
-                aria-label="Promo code"
-              />
+              <>
+                <input
+                  type="text"
+                  className="config-panel__segment-code"
+                  placeholder="Promo code"
+                  value={segment.prize.code}
+                  onChange={(e) => updateSegmentPrize(i, { code: e.target.value })}
+                  aria-label="Promo code"
+                />
+                <input
+                  type="text"
+                  className="config-panel__segment-desc"
+                  placeholder="Prize description"
+                  value={segment.prize.description}
+                  onChange={(e) => updateSegmentPrize(i, { description: e.target.value })}
+                  aria-label="Prize description"
+                />
+              </>
             )}
             <button
               type="button"
