@@ -1,0 +1,410 @@
+{
+  "basket_layers_match": true,
+  "sprites": [
+    {
+      "style": "comic",
+      "asset": "bomb",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 54618
+    },
+    {
+      "style": "comic",
+      "asset": "ebelin",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 59664
+    },
+    {
+      "style": "comic",
+      "asset": "basketBack",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 55358
+    },
+    {
+      "style": "comic",
+      "asset": "basketFront",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 77917
+    },
+    {
+      "style": "comic",
+      "asset": "basket",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 130890
+    },
+    {
+      "style": "comic",
+      "asset": "balea",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 45541
+    },
+    {
+      "style": "comic",
+      "asset": "coupon",
+      "size": [
+        216,
+        174
+      ],
+      "bytes": 47648
+    },
+    {
+      "style": "comic",
+      "asset": "box",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 52998
+    },
+    {
+      "style": "comic",
+      "asset": "alverde",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 35821
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "bomb",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 50439
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "ebelin",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 61644
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "basketBack",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 71293
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "basketFront",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 73917
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "basket",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 142369
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "balea",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 45749
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "coupon",
+      "size": [
+        216,
+        174
+      ],
+      "bytes": 46788
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "box",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 52682
+    },
+    {
+      "style": "graphic-pop",
+      "asset": "alverde",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 36051
+    },
+    {
+      "style": "neon",
+      "asset": "bomb",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 51979
+    },
+    {
+      "style": "neon",
+      "asset": "ebelin",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 63348
+    },
+    {
+      "style": "neon",
+      "asset": "basketBack",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 65698
+    },
+    {
+      "style": "neon",
+      "asset": "basketFront",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 75618
+    },
+    {
+      "style": "neon",
+      "asset": "basket",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 139014
+    },
+    {
+      "style": "neon",
+      "asset": "balea",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 43777
+    },
+    {
+      "style": "neon",
+      "asset": "coupon",
+      "size": [
+        216,
+        174
+      ],
+      "bytes": 54492
+    },
+    {
+      "style": "neon",
+      "asset": "box",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 51767
+    },
+    {
+      "style": "neon",
+      "asset": "alverde",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 36752
+    },
+    {
+      "style": "paper-cut",
+      "asset": "bomb",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 46263
+    },
+    {
+      "style": "paper-cut",
+      "asset": "ebelin",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 49732
+    },
+    {
+      "style": "paper-cut",
+      "asset": "basketBack",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 55283
+    },
+    {
+      "style": "paper-cut",
+      "asset": "basketFront",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 75526
+    },
+    {
+      "style": "paper-cut",
+      "asset": "basket",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 127925
+    },
+    {
+      "style": "paper-cut",
+      "asset": "balea",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 43576
+    },
+    {
+      "style": "paper-cut",
+      "asset": "coupon",
+      "size": [
+        216,
+        174
+      ],
+      "bytes": 47156
+    },
+    {
+      "style": "paper-cut",
+      "asset": "box",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 39290
+    },
+    {
+      "style": "paper-cut",
+      "asset": "alverde",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 32923
+    },
+    {
+      "style": "soft-3d",
+      "asset": "bomb",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 55120
+    },
+    {
+      "style": "soft-3d",
+      "asset": "ebelin",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 54860
+    },
+    {
+      "style": "soft-3d",
+      "asset": "basketBack",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 61856
+    },
+    {
+      "style": "soft-3d",
+      "asset": "basketFront",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 67091
+    },
+    {
+      "style": "soft-3d",
+      "asset": "basket",
+      "size": [
+        360,
+        336
+      ],
+      "bytes": 126222
+    },
+    {
+      "style": "soft-3d",
+      "asset": "balea",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 43483
+    },
+    {
+      "style": "soft-3d",
+      "asset": "coupon",
+      "size": [
+        216,
+        174
+      ],
+      "bytes": 46165
+    },
+    {
+      "style": "soft-3d",
+      "asset": "box",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 55692
+    },
+    {
+      "style": "soft-3d",
+      "asset": "alverde",
+      "size": [
+        192,
+        228
+      ],
+      "bytes": 35217
+    }
+  ]
+}

@@ -55,3 +55,25 @@ and 375×667 without horizontal overflow or broken images.
 
 Vite reports a >500 kB main chunk warning from the existing Pixi renderer stack;
 the production build completes successfully.
+
+## Live art directions
+
+The presenter bar now offers Original SVG, Soft 3D, Graphic Pop, Paper Cut,
+Comic and Neon Arcade. Use the select or previous/next buttons; switching does
+not reset the round. Already-falling drops change their textures immediately.
+The onboarding and result illustrations use the same selected style.
+
+Generated sets are PNGs with alpha under `public/asset-styles/`, loaded only
+when first selected and cached for the lifetime of the engine. The original
+SVG set remains the lightweight default. Each set has seven objects and two
+pixel-aligned basket layers. Runtime assets total about 2.8 MB across all five
+generated styles; only the chosen set is loaded into the game.
+
+Unmodified generated sheets and exact imagegen prompts are kept in
+`design-concepts/`. `python3 apps/catch/design-concepts/export-sprites.py`
+re-exports and validates the 45 PNGs. A failed load retains the current set,
+shows an error, and allows retry. Late requests cannot replace a newer style.
+
+Browser validation covered all six choices, switching mid-combo without
+losing score/lives/time, retry with the same style, a simulated failed image
+decode and recovery, and the switcher/CTA at 375×667.

@@ -1,4 +1,5 @@
-import type { ImgHTMLAttributes } from 'react';
+import { useContext, type ImgHTMLAttributes } from 'react';
+import { AssetStyleContext, styleAssetUrl } from './assetStyles';
 import type { Art } from '../../engine/art';
 
 export type DmAssetKind =
@@ -153,7 +154,9 @@ export function DmAsset({
   alt = '',
   ...props
 }: ImgHTMLAttributes<HTMLImageElement> & { kind: DmAssetKind }) {
-  return <img src={dmDataUrl(kind)} alt={alt} width={120} height={140} {...props} />;
+  const style = useContext(AssetStyleContext);
+  const src = style === 'svg' ? dmDataUrl(kind) : styleAssetUrl(style, kind);
+  return <img src={src} alt={alt} width={120} height={140} {...props} />;
 }
 export function DmLogo() {
   return (

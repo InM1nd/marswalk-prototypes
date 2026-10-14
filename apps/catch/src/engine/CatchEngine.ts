@@ -5,12 +5,14 @@ import {
   Sprite,
   Text,
   TilingSprite,
-  type Texture,
+  Texture,
+  CanvasSource,
 } from 'pixi.js';
 import type { CatchConfig } from '../config/schema';
 import { comboMultiplier, useGameStore } from '../store/gameStore';
 import * as art from './art';
 import { dmArt, dmBackdrop } from '../components/assets/DmAssets';
+import { styleAssetUrl, type AssetStyle } from '../components/assets/assetStyles';
 import {
   FIELD_W,
   POINTS,
@@ -75,11 +77,26 @@ type TextureKey =
   | 'mid'
   | 'roof';
 
+const STYLE_KEYS = [
+  'balea',
+  'alverde',
+  'ebelin',
+  'coupon',
+  'bomb',
+  'box',
+  'bagBack',
+  'bagFront',
+] as const;
+type StyleTextures = Record<(typeof STYLE_KEYS)[number], Texture>;
+
 export class CatchEngine {
   private app: Application | null = null;
   private destroyed = false;
   private options: CatchEngineOptions;
   private textures: Texture[] = [];
+  private styleTextures = new Map<AssetStyle, StyleTextures>();
+  private styleRequest = 0;
+  private assetStyle: AssetStyle = 'svg';
   private tex!: Record<TextureKey, Texture>;
 
   private view = { w: FIELD_W, h: 640, mouthY: 512, scale: 1 };
@@ -196,6 +213,48 @@ export class CatchEngine {
       TextureKey,
       Texture
     >;
+    this.styleTextures.set(
+      'svg',
+      Object.fromEntries(STYLE_KEYS.map((k) => [k, this.tex[k]])) as StyleTextures,
+    );
+  }
+
+  /** Replace only art, preserving the round, input, drops, score and timer. */
+  async setAssetStyle(style: AssetStyle): Promise<void> {
+    const request = ++this.styleRequest;
+    let textures = this.styleTextures.get(style);
+    if (!textures && style !== 'svg') {
+      const results = await Promise.allSettled(
+        STYLE_KEYS.map(async (key) => {
+          const kind = key === 'bagBack' ? 'basketBack' : key === 'bagFront' ? 'basketFront' : key;
+          const image = new Image();
+          image.src = styleAssetUrl(style, kind);
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          canvas.getContext('2d')!.drawImage(image, 0, 0);
+          return new Texture({ source: new CanvasSource({ resource: canvas, resolution: 3 }) });
+        }),
+      );
+      const loaded = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+      if (this.destroyed || loaded.length !== STYLE_KEYS.length) {
+        for (const texture of loaded) texture.destroy(true);
+        if (this.destroyed) return;
+        throw new Error('Asset style could not be loaded');
+      }
+      textures = {} as StyleTextures;
+      for (const [i, key] of STYLE_KEYS.entries()) textures[key] = loaded[i];
+      this.textures.push(...loaded);
+      this.styleTextures.set(style, textures);
+    }
+    if (this.destroyed || request !== this.styleRequest || !textures) return;
+    Object.assign(this.tex, textures);
+    (this.bagBack.children[0] as Sprite).texture = textures.bagBack;
+    (this.bagFront.children[0] as Sprite).texture = textures.bagFront;
+    for (const drop of this.drops)
+      (drop.view.children.at(-1) as Sprite).texture = textures[drop.plan.kind];
+    this.assetStyle = style;
   }
 
   private buildScene(): void {
@@ -656,6 +715,7 @@ export class CatchEngine {
   /** Dev-only probe for tuning bots (see window.__catch). */
   debugState() {
     return {
+      assetStyle: this.assetStyle,
       bagX: this.bagX,
       view: this.view,
       fps: this.app?.ticker.FPS,
@@ -670,6 +730,8 @@ export class CatchEngine {
 
   destroy(): void {
     this.destroyed = true;
+    this.styleRequest++;
+    this.styleTextures.clear();
     this.app?.canvas.removeEventListener('pointerdown', this.onPointerDown);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
