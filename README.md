@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:4000** — hub at `/`, prototypes proxied under `/wheel`, `/scratch`, `/runner`, `/plinko`.
+Open **http://localhost:4000** — hub at `/`, prototypes proxied under `/wheel`, `/scratch`, `/runner`, `/plinko`, `/catch`, `/advent`.
 
 ```bash
 npm run build   # → dist/ (single Vercel static project)
@@ -25,6 +25,8 @@ npm run build   # → dist/ (single Vercel static project)
 | `/scratch/lotto` | Scratch Lotto (match-3 grid) |
 | `/runner/` | Mini Runner |
 | `/plinko/` | 3D Plinko |
+| `/catch/` | Catch the Drop |
+| `/advent/` | Advent Calendar (Next.js static export, Drei Austria pitch) |
 
 Planned (not built): 3D Configurator, Personality Quiz.
 
