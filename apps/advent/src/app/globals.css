@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+
+/* Drei brand palette, sampled from drei.at */
+@theme {
+  --color-drei: #00a0d2;
+  --color-drei-deep: #00779d;
+  --color-drei-sky: #2bbbf3;
+  --color-navy: #0f273b;
+  --color-lime: #ddee3d;
+  --color-purple: #71439d;
+  --color-ice: #f2fafd;
+  --color-ice-2: #dde9ef;
+  --font-sans: 'Helvetica Neue', Helvetica, var(--nf-body), Arial, sans-serif;
+  --font-script: var(--nf-script), cursive;
+}
+
+html {
+  background: var(--color-ice);
+  color-scheme: light;
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--color-navy);
+  /* drei.at's big pale diagonal planes */
+  background:
+    linear-gradient(118deg, transparent 58%, rgb(255 255 255 / 0.75) 58% 78%, transparent 78%),
+    linear-gradient(200deg, transparent 70%, rgb(221 233 239 / 0.6) 70%),
+    linear-gradient(170deg, var(--color-ice), #e6f2f7);
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Drei's signature rounded diamond badge: a rotated squircle behind centered content. */
+.diamond {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.diamond::before {
+  content: '';
+  position: absolute;
+  inset: 13%;
+  z-index: -1;
+  border-radius: 30%;
+  transform: rotate(45deg);
+  background: var(--diamond, var(--color-lime));
+}
+
+@keyframes lime-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-lime), 0 10px 26px rgb(221 238 61 / 0.35); }
+  50% { box-shadow: 0 0 0 5px var(--color-lime), 0 12px 34px rgb(221 238 61 / 0.6); }
+}
+.glow-today {
+  animation: lime-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.rays {
+  background: repeating-conic-gradient(from 0deg, rgb(0 160 210 / 0.35) 0deg 6deg, transparent 6deg 15deg, rgb(221 238 61 / 0.55) 15deg 21deg, transparent 21deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%);
+  mask: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: spin-slow 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-today, .rays { animation: none; }
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-drei);
+  outline-offset: 2px;
+}

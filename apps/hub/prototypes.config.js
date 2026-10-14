@@ -83,6 +83,18 @@ window.PROTOTYPES = [
     url: '/catch/',
   },
   {
+    id: 'advent',
+    image: 'previews/advent.webp',
+    accent: '#00b4d8',
+    icon: '🎄',
+    title: 'Advent Calendar',
+    subtitle: 'Daily doors · Drei Austria',
+    description: '24 doors with scratch, quiz and gift-unwrap mechanics, raffle tickets and a GDPR lead form. Demo-mode date controls for pitching.',
+    stack: ['Next.js', 'framer-motion', 'Tailwind'],
+    status: 'live',
+    url: '/advent/',
+  },
+  {
     id: 'configurator',
     accent: '#ff8f1f',
     icon: '🧩',

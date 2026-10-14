@@ -3,7 +3,7 @@
 // so everything lives on one origin/port instead of one port per prototype.
 //
 // Mirrors production routing in vercel.ts — one Vercel project, path-based
-// rewrites to each built app under dist/{wheel,scratch,runner,plinko,catch}.
+// rewrites to each built app under dist/{wheel,scratch,runner,plinko,catch,advent}.
 import http from 'node:http';
 import httpProxy from 'http-proxy';
 import { createReadStream, existsSync, statSync } from 'node:fs';
@@ -20,6 +20,7 @@ const PROXIES = {
   '/runner': 'http://localhost:5175',
   '/plinko': 'http://localhost:5176',
   '/catch': 'http://localhost:5177',
+  '/advent': 'http://localhost:5178',
 };
 
 const MIME_TYPES = {
