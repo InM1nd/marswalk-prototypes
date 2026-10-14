@@ -3,12 +3,13 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-all.mjs",
-    "dev": "concurrently -n hub,wheel,scratch,runner,plinko -c cyan,yellow,green,magenta,red \"npm:dev:hub\" \"npm:dev:wheel\" \"npm:dev:scratch\" \"npm:dev:runner\" \"npm:dev:plinko\"",
+    "dev": "concurrently -n hub,wheel,scratch,runner,plinko,catch -c cyan,yellow,green,magenta,red,blue \"npm:dev:hub\" \"npm:dev:wheel\" \"npm:dev:scratch\" \"npm:dev:runner\" \"npm:dev:plinko\" \"npm:dev:catch\"",
     "dev:hub": "node scripts/dev-server.mjs",
     "dev:wheel": "VITE_BASE_PATH=/wheel/ npm --prefix apps/wheel run dev",
     "dev:scratch": "VITE_BASE_PATH=/scratch/ npm --prefix apps/scratch run dev -- --port 5174",
     "dev:runner": "VITE_BASE_PATH=/runner/ npm --prefix apps/runner run dev -- --port 5175",
-    "dev:plinko": "VITE_BASE_PATH=/plinko/ npm --prefix apps/plinko run dev -- --port 5176"
+    "dev:plinko": "VITE_BASE_PATH=/plinko/ npm --prefix apps/plinko run dev -- --port 5176",
+    "dev:catch": "VITE_BASE_PATH=/catch/ npm --prefix apps/catch run dev -- --port 5177"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

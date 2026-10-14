@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Runner · Characters & props · marswalk</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --foreground: #f3f3f7; --background: #0a0a0f; --card: #141419; --border: rgba(255,255,255,.09); --muted: rgba(255,255,255,.08); --muted-foreground: #9a9aab; --radius: 16px; }
+  html, body { margin: 0; background: var(--background); color: var(--foreground); font-family: Inter, system-ui, sans-serif; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 64px; }
+  .page header { margin-bottom: 28px; }
+  .page header a { color: var(--muted-foreground); text-decoration: none; font-size: 13px; font-weight: 600; margin-right: 14px; }
+  .page h1 { margin: 14px 0 6px; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; }
+  .page h2 { margin: 40px 0 6px; font-size: 22px; letter-spacing: -.01em; }
+  .page p.lead { margin: 0 0 18px; max-width: 760px; color: var(--muted-foreground); line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+  .grid--styles { grid-template-columns: repeat(4, 1fr); }
+  .grid--maps { grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+  .map { width: 100%; height: auto; display: block; }
+  @media (max-width: 720px) { .grid--maps { grid-template-columns: 1fr; } .grid--styles { grid-template-columns: repeat(2, 1fr); } }
+  .card { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; }
+  .hero { height: 210px; display: grid; place-items: end center; padding-bottom: 6px; }
+  .hero svg { width: 190px; height: auto; display: block; overflow: visible; }
+  .grid--styles .hero { height: 170px; }
+  .grid--styles .hero svg { width: 150px; }
+  .props { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+  .prop { background: var(--card); padding: 8px 4px 9px; text-align: center; font-size: 11px; color: var(--muted-foreground); }
+  .prop svg { width: 46px; height: 46px; display: block; margin: 0 auto 4px; overflow: visible; }
+  .prop b { display: block; color: var(--foreground); font-weight: 600; }
+  .meta { padding: 12px 14px 14px; font-size: 13px; line-height: 1.45; }
+  .meta h3 { margin: 0 0 2px; font-size: 15px; }
+  .meta p { margin: 0; color: var(--muted-foreground); }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--muted); margin: 6px 4px 0 0; color: var(--foreground); }
+  footer { margin-top: 32px; color: var(--muted-foreground); font-size: 13px; line-height: 1.55; max-width: 760px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <a href="./">← Back to the live Runner</a><a href="styles.html">Style directions</a>
+    <h1>Runner — characters & props</h1>
+    <p class="lead">The runner isn't tied to a scooter. Each campaign picks a hero, two obstacles and a collectible that fit the brand. Every hero shares the same hitbox and physics, so swapping the art never changes the difficulty, the scoring or the prize flow.</p>
+  </header>
+
+  <h2>A hero for every vertical</h2>
+  <p class="lead">Eight ready-made casts. The obstacles carry the brand's story (fees to dodge, delays to skip, potholes to hop) and the collectible is the brand's reward (cashback, tickets, ride credits).</p>
+  <div class="grid" id="heroes"></div>
+
+  <h2>A world for every hero</h2>
+  <p class="lead">Each cast comes with its own map: the same four parallax layers (sky, far, mid, ground), so the engine never changes, only the art. The hero and props from above drop straight in.</p>
+  <div class="grid grid--maps" id="maps"></div>
+
+  <h2>Same hero, any style</h2>
+  <p class="lead">One character rig with eight skins. The art direction is a campaign setting, not a rebuild.</p>
+  <div class="grid grid--styles" id="styles"></div>
+
+  <footer>These are static concept sketches (SVG). In the live game each hero gets run, jump, double-jump and crash poses plus a squash-and-stretch on landing. Brand colours, logo and copy come from the campaign config.</footer>
+</div>
+<script>
+const D = 'rgba(0,0,0,.18)', L = 'rgba(255,255,255,.38)';
+const text = (x, y, t, a) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${a}>${t}</text>`;
+const limb = (d, color, w, st = '') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${st}/>`;
+const shadow = (rx = 40) => `<ellipse cx="0" cy="2" rx="${rx}" ry="4" fill="rgba(0,0,0,.16)"/>`;
+// Outlined limbs: draw a thicker dark stroke under the coloured one.
+const olimb = (d, color, w, o) => (o ? limb(d, o.c, w + o.w * 2) : '') + limb(d, color, w);
+
+/* ---------- Heroes (origin = ground under the hero, facing right) ---------- */
+
+function courier(p, o = {}) {
+  const st = o.st || '', sh = o.shade !== false, ol = o.outline;
+  return `${o.noShadow ? '' : shadow(46)}
+    <rect x="-31" y="-85" width="21" height="31" rx="4" fill="${p.box}" ${st}/>
+    ${sh ? `<rect x="-31" y="-85" width="8" height="31" rx="3" fill="${D}"/>` : ''}
+    <rect x="-27" y="-74" width="13" height="4" rx="2" fill="${p.boxMark}"/>
+    ${olimb('M-7 -48 L-13 -31 L-19 -17', p.pantsDark, 9, ol)}
+    ${olimb('M29 -12 L19 -81', p.frame, 5, ol)}
+    <path d="M-41 -12 A12 12 0 0 1 -17 -14" fill="none" stroke="${p.deck}" stroke-width="3.5" stroke-linecap="round"/>
+    <rect x="-38" y="-18" width="68" height="8" rx="4" fill="${p.deck}" ${st}/>
+    ${olimb('M11 -83 L27 -81', p.frame, 4, ol)}
+    <circle cx="25" cy="-57" r="3.2" fill="#ffe9a0" ${st}/>
+    ${olimb('M-1 -48 L8 -32 L4 -17', p.pants, 9, ol)}
+    <rect x="-26" y="-22" width="14" height="7" rx="3" fill="${p.shoe}" ${st}/><rect x="-2" y="-22" width="14" height="7" rx="3" fill="${p.shoe}" ${st}/>
+    <path d="M-13 -46 C-15 -60 -12 -75 -6 -83 L9 -81 C13 -71 11 -57 7 -46Z" fill="${p.jacket}" ${st}/>
+    ${sh ? `<path d="M-13 -46 C-15 -60 -12 -75 -6 -83 L-2 -82 C-6 -70 -7 -58 -5 -46Z" fill="${D}"/>` : ''}
+    <path d="M-12 -61 L10 -63" stroke="${p.stripe}" stroke-width="3"/>
+    <rect x="0" y="-89" width="6" height="7" fill="${p.skin}"/>
+    <circle cx="4" cy="-94" r="9" fill="${p.skin}" ${st}/>
+    <path d="M-6 -93 C-7 -107 14 -110 15 -96 L19 -95 L-6 -92Z" fill="${p.helmet}" ${st}/>
+    ${sh ? `<ellipse cx="2" cy="-103" rx="5" ry="2.2" fill="${L}"/>` : ''}
+    <circle cx="10" cy="-91" r="1.5" fill="${p.ink}"/><path d="M8.5 -87 q2.2 1.6 4.4 0" fill="none" stroke="${p.ink}" stroke-width="1.2" stroke-linecap="round"/>
+    ${olimb('M3 -77 L15 -68 L13 -81', p.jacket, 7, ol)}
+    <circle cx="13" cy="-82" r="3.6" fill="${p.skin}" ${st}/>
+    ${[-28, 33].map((x) => `<circle cx="${x}" cy="-9" r="9.5" fill="${p.tire}" ${st}/><circle cx="${x}" cy="-9" r="4" fill="${p.rim}"/>`).join('')}`;
+}
+
+function coinBuddy(p) {
+  return `${shadow(30)}
+    ${limb('M-6 -24 L-15 -12 L-24 -9', p.limb, 6)}<ellipse cx="-26" cy="-8" rx="6" ry="3.5" fill="${p.shoe}"/>
+    ${limb('M-24 -54 L-36 -46', p.limb, 5)}<circle cx="-37" cy="-45" r="4" fill="#fff"/>
+    <circle cx="4" cy="-52" r="29" fill="${p.edge}"/>
+    <circle cx="0" cy="-52" r="29" fill="${p.gold}"/>
+    <circle cx="0" cy="-52" r="22.5" fill="none" stroke="${p.edge}" stroke-width="2.2"/>
+    <path d="M-20 -62 A22 22 0 0 1 -4 -73" fill="none" stroke="${L}" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="-3" cy="-57" rx="4" ry="5.5" fill="#fff"/><ellipse cx="10" cy="-57" rx="4" ry="5.5" fill="#fff"/>
+    <circle cx="-1.5" cy="-56" r="2.3" fill="${p.ink}"/><circle cx="11.5" cy="-56" r="2.3" fill="${p.ink}"/>
+    <path d="M-1 -44 Q5 -37 12 -44" fill="none" stroke="${p.ink}" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="-8" cy="-45" r="3" fill="#ff8a7a" opacity=".55"/><circle cx="17" cy="-46" r="3" fill="#ff8a7a" opacity=".55"/>
+    ${limb('M5 -24 L13 -12 L11 -3', p.limb, 6)}<ellipse cx="14" cy="-3" rx="7" ry="3.8" fill="${p.shoe}"/>
+    ${limb('M25 -56 L35 -66', p.limb, 5)}<circle cx="36" cy="-67" r="4" fill="#fff"/>`;
+}
+
+function sodaCan(p) {
+  return `${shadow(26)}
+    ${limb('M-7 -20 L-15 -9 L-23 -6', p.limb, 6)}<ellipse cx="-25" cy="-5" rx="6" ry="3.5" fill="${p.shoe}"/>
+    ${limb('M-20 -58 L-31 -50', p.limb, 5)}<circle cx="-32" cy="-49" r="4" fill="#fff"/>
+    <ellipse cx="0" cy="-20" rx="20" ry="5" fill="${p.metalDark}"/>
+    <rect x="-20" y="-96" width="40" height="76" fill="${p.can}"/>
+    <path d="M-20 -60 Q0 -68 20 -60 V-36 Q0 -28 -20 -36Z" fill="${p.label}"/>
+    ${text(0, -48, p.brand, 'font-family="Bricolage Grotesque" font-size="11" fill="#fff" letter-spacing=".5"')}
+    <rect x="9" y="-96" width="11" height="76" fill="${D}"/><rect x="-15" y="-94" width="5" height="72" rx="2.5" fill="${L}"/>
+    <ellipse cx="0" cy="-96" rx="20" ry="5" fill="${p.metal}"/><ellipse cx="1" cy="-96" rx="14" ry="3" fill="${p.metalDark}"/>
+    <rect x="-3" y="-100" width="9" height="4" rx="2" fill="${p.metal}" stroke="${p.metalDark}"/>
+    <ellipse cx="-4" cy="-82" rx="3.5" ry="4.5" fill="#fff"/><ellipse cx="8" cy="-82" rx="3.5" ry="4.5" fill="#fff"/>
+    <circle cx="-2.6" cy="-81" r="2" fill="${p.ink}"/><circle cx="9.4" cy="-81" r="2" fill="${p.ink}"/>
+    <path d="M-1 -73 Q3 -69 7 -73" fill="none" stroke="${p.ink}" stroke-width="2" stroke-linecap="round"/>
+    ${limb('M6 -20 L14 -10 L12 -2', p.limb, 6)}<ellipse cx="15" cy="-2" rx="7" ry="3.8" fill="${p.shoe}"/>
+    ${limb('M20 -58 L30 -68', p.limb, 5)}<circle cx="31" cy="-69" r="4" fill="#fff"/>
+    <circle cx="-8" cy="-110" r="3" fill="none" stroke="${p.can}" stroke-width="1.5"/><circle cx="4" cy="-118" r="2" fill="none" stroke="${p.can}" stroke-width="1.5"/><circle cx="12" cy="-108" r="2.5" fill="none" stroke="${p.can}" stroke-width="1.5"/>`;
+}
+
+function suitcase(p) {
+  return `${shadow(34)}<g transform="rotate(-7)">
+    <path d="M-9 -84 V-110 H9 V-84" fill="none" stroke="${p.metal}" stroke-width="3.5" stroke-linejoin="round"/>
+    <rect x="-12" y="-114" width="24" height="7" rx="3.5" fill="${p.ink}"/>
+    <rect x="-28" y="-86" width="56" height="72" rx="9" fill="${p.case}"/>
+    <rect x="12" y="-86" width="16" height="72" rx="6" fill="${D}"/>
+    <path d="M-12 -82 V-18 M10 -82 V-18" stroke="${D}" stroke-width="2.5"/>
+    <rect x="-24" y="-82" width="5" height="62" rx="2.5" fill="${L}"/>
+    <circle cx="15" cy="-34" r="8" fill="${p.sticker1}"/>${text(15, -34, '✈', `font-size="9" fill="${p.ink}"`)}
+    <rect x="-22" y="-36" width="18" height="11" rx="2" fill="${p.sticker2}" transform="rotate(-12 -13 -30)"/>${text(-13, -30.5, 'NICE', `font-family="Inter" font-weight="800" font-size="5" fill="#fff" transform="rotate(-12 -13 -30)"`)}
+    <rect x="-20" y="-68" width="17" height="11" rx="5" fill="${p.ink}"/><rect x="1" y="-68" width="17" height="11" rx="5" fill="${p.ink}"/><path d="M-3 -64 H1" stroke="${p.ink}" stroke-width="2.5"/>
+    <path d="M-16 -66 l5 0" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7"/><path d="M5 -66 l5 0" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+    <path d="M-7 -50 Q0 -44 8 -50" fill="none" stroke="${p.ink}" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="-17" cy="-8" r="6.5" fill="${p.ink}"/><circle cx="17" cy="-8" r="6.5" fill="${p.ink}"/><circle cx="-17" cy="-8" r="2.5" fill="${p.metal}"/><circle cx="17" cy="-8" r="2.5" fill="${p.metal}"/>
+  </g>`;
+}
+
+function cart(p) {
+  const bars = [-22, -10, 2, 14].map((x) => `<path d="M${x} -64 L${x + (x > 0 ? -2 : 2)} -28" stroke="${p.frame}" stroke-width="1.6" opacity=".6"/>`).join('');
+  return `${shadow(42)}
+    <rect x="-30" y="-92" width="12" height="30" rx="3" fill="#e9c27a" transform="rotate(-24 -24 -77)"/><path d="M-27 -86 l6 3 M-25 -79 l6 3" stroke="#b98a3f" stroke-width="1.5" transform="rotate(-24 -24 -77)"/>
+    <rect x="-8" y="-96" width="11" height="32" rx="4" fill="#3fbf6f"/><rect x="-5" y="-104" width="5" height="9" rx="1.5" fill="#2e8a50"/>
+    <rect x="6" y="-88" width="24" height="24" rx="3" fill="${p.box}"/>${text(18, -76, p.brand, 'font-family="Bricolage Grotesque" font-size="8" fill="#fff"')}
+    <circle cx="-14" cy="-68" r="7" fill="#ff5a4a"/><path d="M-14 -75 q2 -4 5 -4" stroke="#2e8a50" stroke-width="2" fill="none"/>
+    <path d="M-36 -66 L32 -66 L24 -28 L-28 -28Z" fill="${p.basket}" stroke="${p.frame}" stroke-width="3.2" stroke-linejoin="round"/>
+    ${bars}<path d="M-32 -48 L28 -48" stroke="${p.frame}" stroke-width="1.6" opacity=".6"/>
+    <path d="M-36 -66 L-46 -80 L-56 -80" fill="none" stroke="${p.frame}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="-62" y="-83" width="12" height="6" rx="3" fill="${p.accent}"/>
+    <path d="M-26 -28 L-24 -16 M22 -28 L20 -16 M-30 -16 H28" fill="none" stroke="${p.frame}" stroke-width="3" stroke-linecap="round"/>
+    ${[-23, 21].map((x) => `<circle cx="${x}" cy="-8" r="7" fill="${p.ink}"/><circle cx="${x}" cy="-8" r="2.6" fill="#ddd"/>`).join('')}
+    ${[[-58, -40, 18], [-64, -30, 24], [-56, -20, 14]].map(([x, y, w]) => `<path d="M${x} ${y} h${w}" stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round" opacity=".6"/>`).join('')}`;
+}
+
+function athlete(p) {
+  return `${shadow(34)}
+    ${limb('M-3 -48 L-12 -32', p.shorts, 11)}${limb('M-12 -32 L-28 -26', p.skin, 8)}<path d="M-34 -30 h10 a4 4 0 0 1 0 8 h-12z" fill="${p.shoe}" transform="rotate(20 -30 -26)"/>
+    ${limb('M0 -79 L-12 -70 L-18 -58', p.skin, 6.5)}
+    <path d="M-8 -48 C-9 -62 -6 -76 -1 -84 L13 -81 C15 -70 12 -56 9 -48Z" fill="${p.shirt}"/>
+    <path d="M-8 -48 C-9 -62 -6 -76 -1 -84 L3 -83 C-1 -71 -2 -58 -1 -48Z" fill="${D}"/>
+    <rect x="-3" y="-72" width="13" height="11" rx="1.5" fill="#fff"/>${text(3.5, -66.5, '07', `font-family="Inter" font-weight="800" font-size="7" fill="${p.ink}"`)}
+    <path d="M-9 -50 L10 -50 L11 -42 L-9 -42Z" fill="${p.shorts}"/>
+    ${limb('M4 -46 L16 -30', p.shorts, 11)}${limb('M16 -30 L12 -8', p.skin, 8)}<path d="M8 -9 h12 a4 4 0 0 1 0 8 h-14z" fill="${p.shoe}"/>
+    <rect x="3" y="-91" width="7" height="8" fill="${p.skin}"/>
+    <circle cx="9" cy="-96" r="9.5" fill="${p.skin}"/>
+    <path d="M-1 -97 C-2 -109 16 -110 19 -99 C14 -103 6 -103 -1 -97Z" fill="${p.hair}"/>
+    <path d="M-1 -100 L19 -100" stroke="${p.accent}" stroke-width="3.5"/><path d="M-1 -100 L-9 -96 M-1 -100 L-8 -103" stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="14" cy="-94" r="1.5" fill="${p.ink}"/><path d="M12 -89 h4" stroke="${p.ink}" stroke-width="1.3" stroke-linecap="round"/>
+    ${limb('M6 -79 L18 -72 L26 -82', p.skin, 6.5)}`;
+}
+
+function fox(p) {
+  return `${shadow(36)}
+    <path d="M-20 -40 C-44 -38 -60 -58 -50 -76 C-44 -60 -34 -54 -18 -50Z" fill="${p.fur}"/>
+    <path d="M-50 -76 C-46 -66 -42 -62 -38 -60 C-46 -62 -52 -68 -50 -76Z" fill="#fff"/>
+    ${limb('M-14 -32 L-24 -18 L-34 -16', p.sock, 6)}${limb('M12 -32 L22 -22 L30 -26', p.sock, 6)}
+    <ellipse cx="0" cy="-42" rx="25" ry="15" fill="${p.fur}" transform="rotate(-8)"/>
+    <ellipse cx="4" cy="-34" rx="15" ry="7" fill="#fff" transform="rotate(-8)"/>
+    ${limb('M-8 -32 L-12 -14 L-6 -6', p.sock, 6.5)}${limb('M16 -36 L28 -22 L26 -10', p.sock, 6.5)}
+    <path d="M14 -70 L12 -88 L24 -74Z" fill="${p.fur}"/><path d="M15 -73 L14 -83 L21 -75Z" fill="${p.ink}" opacity=".7"/>
+    <path d="M24 -72 L32 -88 L34 -68Z" fill="${p.fur}"/>
+    <circle cx="24" cy="-60" r="14" fill="${p.fur}"/>
+    <path d="M26 -54 C34 -58 40 -58 44 -56 C40 -50 32 -46 22 -48Z" fill="#fff"/>
+    <circle cx="44" cy="-56" r="2.8" fill="${p.ink}"/>
+    <path d="M27 -64 q3 -2.5 6 0" fill="none" stroke="${p.ink}" stroke-width="2" stroke-linecap="round"/>
+    <path d="M30 -48 q4 2 7 -1" fill="none" stroke="${p.ink}" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M10 -84 C18 -96 30 -96 36 -86" fill="none" stroke="${p.accent}" stroke-width="0"/>
+    <path d="M6 -62 L16 -60 L14 -54 L4 -56Z" fill="${p.accent}"/>`;
+}
+
+function car(p) {
+  return `${shadow(48)}
+    <path d="M-46 -16 L-46 -33 Q-44 -42 -33 -43 L-21 -44 L-9 -63 Q-5 -68 3 -68 L22 -68 Q31 -68 35 -59 L41 -45 Q50 -43 50 -33 L50 -16Z" fill="${p.body}"/>
+    <path d="M-46 -28 L50 -28 L50 -16 L-46 -16Z" fill="${D}"/>
+    <path d="M-15 -45 L-5 -61 L8 -61 L8 -45Z M12 -45 L12 -61 L22 -61 Q27 -61 30 -55 L34 -45Z" fill="${p.glass}"/>
+    <path d="M-12 -47 L-4 -59 L0 -59 L-8 -47Z" fill="${L}"/>
+    <path d="M-46 -36 L50 -36" stroke="${p.stripe}" stroke-width="4"/>
+    <path d="M10 -45 V-18" stroke="${D}" stroke-width="1.5"/><rect x="0" y="-41" width="7" height="2.5" rx="1.2" fill="${D}"/>
+    <rect x="44" y="-41" width="7" height="6" rx="2" fill="#ffe9a0"/><rect x="-47" y="-41" width="5" height="6" rx="2" fill="#ff4a4a"/>
+    ${text(-24, -30, p.brand, 'font-family="Bricolage Grotesque" font-size="7" fill="#fff"')}
+    ${[-26, 31].map((x) => `<circle cx="${x}" cy="-13" r="12" fill="${p.ink}"/><circle cx="${x}" cy="-13" r="5.5" fill="#d9dde5"/><circle cx="${x}" cy="-13" r="2" fill="${p.ink}"/>`).join('')}
+    ${[[-70, -50, 16], [-76, -38, 22], [-68, -26, 12]].map(([x, y, w]) => `<path d="M${x} ${y} h${w}" stroke="${p.body}" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>`).join('')}`;
+}
+
+/* ---------- Props (origin = ground centre) ---------- */
+const P = {
+  cone: () => `${shadow(16)}<rect x="-16" y="-6" width="32" height="6" rx="2" fill="#2a2f3a"/><path d="M-12 -6 L12 -6 L5 -40 L-5 -40Z" fill="#ff6a2a"/><path d="M-9.5 -19 L9.5 -19 L8.3 -25 L-8.3 -25Z M-7 -31 L7 -31 L6.2 -35 L-6.2 -35Z" fill="#fff"/><path d="M5 -40 L12 -6 L6 -6 L2 -40Z" fill="${D}"/>`,
+  puddle: () => `<ellipse cx="0" cy="-3" rx="22" ry="5.5" fill="#5aa9e6"/><ellipse cx="-5" cy="-4" rx="9" ry="1.8" fill="#fff" opacity=".6"/><ellipse cx="10" cy="-2.5" rx="4" ry="1" fill="#fff" opacity=".5"/>`,
+  token: (c = '#ffc857', g = '⚡') => `<circle cx="0" cy="-22" r="16" fill="${c}"/><circle cx="0" cy="-22" r="16" fill="none" stroke="${D}" stroke-width="3"/><circle cx="0" cy="-22" r="11" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>${text(0, -21.5, g, 'font-family="Inter" font-weight="800" font-size="13" fill="#2a1a00"')}<path d="M-10 -30 A12 12 0 0 1 -2 -36" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".7"/>`,
+  fee: () => `${shadow(14)}<g transform="translate(0 -20)">${Array.from({ length: 10 }, (_, i) => `<path d="M-4 -14 L0 -21 L4 -14Z" fill="#c62828" transform="rotate(${i * 36})"/>`).join('')}<circle r="14" fill="#e53935"/><circle r="14" fill="none" stroke="${D}" stroke-width="3"/>${text(0, .5, 'FEE', 'font-family="Inter" font-weight="800" font-size="8" fill="#fff"')}</g>`,
+  paperwork: () => `${shadow(16)}${[0, 1, 2, 3, 4].map((i) => `<rect x="${-15 + (i % 2) * 2}" y="${-8 - i * 7}" width="28" height="7" rx="1" fill="${i % 2 ? '#f1f1f1' : '#fff'}" stroke="#c9c9c9"/>`).join('')}<path d="M-14 -40 l26 -4" stroke="#e53935" stroke-width="3"/>${text(0, -46, 'TAPE', 'font-family="Inter" font-weight="800" font-size="6" fill="#e53935"')}`,
+  crate: () => `${shadow(18)}<rect x="-17" y="-32" width="34" height="32" rx="2" fill="#c98a4a"/><path d="M-17 -32 L17 0 M17 -32 L-17 0" stroke="#9a6430" stroke-width="3"/><rect x="-17" y="-32" width="34" height="32" rx="2" fill="none" stroke="#7a4e24" stroke-width="3"/>`,
+  peel: () => `<path d="M-14 -2 C-10 -12 -4 -16 0 -18 C4 -16 10 -12 14 -2 C8 -6 4 -6 0 -4 C-4 -6 -8 -6 -14 -2Z" fill="#ffd84a"/><path d="M0 -18 C-1 -24 1 -28 3 -30" stroke="#8a6a1a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-6 -12 C-2 -14 2 -14 6 -12" stroke="#e8b820" stroke-width="1.5" fill="none"/>`,
+  cap: (c = '#e8402b') => `<g transform="translate(0 -22)">${Array.from({ length: 18 }, (_, i) => `<circle cx="${Math.cos(i * Math.PI / 9) * 15}" cy="${Math.sin(i * Math.PI / 9) * 15}" r="2.6" fill="${c}"/>`).join('')}<circle r="15" fill="${c}"/><circle r="11" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.5"/>${text(0, .5, '★', 'font-size="12" fill="#fff"')}</g>`,
+  stanchion: () => `${shadow(20)}${[-16, 16].map((x) => `<rect x="${x - 2}" y="-34" width="4" height="32" fill="#b9bfc9"/><ellipse cx="${x}" cy="-2" rx="7" ry="2.5" fill="#8a909a"/><circle cx="${x}" cy="-35" r="3" fill="#d9dde5"/>`).join('')}<path d="M-14 -32 Q0 -20 14 -32" stroke="#c62828" stroke-width="4" fill="none"/>`,
+  delayed: () => `${shadow(18)}<rect x="-2" y="-20" width="4" height="20" fill="#5a606a"/><rect x="-21" y="-42" width="42" height="24" rx="3" fill="#1d2129"/>${text(0, -35, 'FLIGHT', 'font-family="Inter" font-weight="700" font-size="5" fill="#9aa"')}${text(0, -26.5, 'DELAYED', 'font-family="Inter" font-weight="800" font-size="7.5" fill="#ffb020"')}`,
+  ticket: () => `<g transform="translate(0 -22) rotate(-10)"><path d="M-20 -11 H20 V-4 a4 4 0 0 0 0 8 V11 H-20 V4 a4 4 0 0 0 0 -8Z" fill="#2f8cff"/><path d="M8 -9 V9" stroke="#fff" stroke-dasharray="2 2" stroke-width="1.2"/>${text(-6, -2, '✈', 'font-size="9" fill="#fff"')}${text(-6, 6, 'FREE', 'font-family="Inter" font-weight="800" font-size="5" fill="#fff"')}</g>`,
+  wetfloor: () => `${shadow(14)}<path d="M-12 0 L-4 -40 L4 -40 L12 0" fill="#ffd400" stroke="#d4a800" stroke-width="2" stroke-linejoin="round"/><path d="M-6 -24 l6 -9 l6 9z" fill="none" stroke="#222" stroke-width="1.6"/>${text(0, -26, '!', 'font-family="Inter" font-weight="800" font-size="6" fill="#222"')}<rect x="-9" y="-14" width="18" height="4" fill="#222"/>`,
+  boxes: () => `${shadow(18)}<rect x="-18" y="-20" width="22" height="20" fill="#d4a26a"/><rect x="2" y="-16" width="16" height="16" fill="#c08a52"/><rect x="-12" y="-38" width="20" height="18" fill="#e0b47e"/><path d="M-7 -20 V-12 M10 -16 V-10 M-2 -38 V-31" stroke="#fff" stroke-width="2.5" opacity=".7"/>`,
+  tag: () => `<g transform="translate(0 -22) rotate(-14)"><path d="M-18 -11 H10 L19 0 L10 11 H-18Z" fill="#ff3d6e"/><circle cx="11" cy="0" r="2.5" fill="#fff"/>${text(-4, .5, '−20%', 'font-family="Inter" font-weight="800" font-size="9" fill="#fff"')}</g>`,
+  hurdle: () => `${shadow(18)}<rect x="-18" y="-32" width="36" height="8" fill="#fff" stroke="#e53935" stroke-width="2"/><path d="M-12 -32 h6 v8 h-6z M2 -32 h6 v8 h-6z" fill="#e53935"/><path d="M-16 -24 V0 M16 -24 V0" stroke="#7a808a" stroke-width="3"/><path d="M-21 0 h10 M11 0 h10" stroke="#7a808a" stroke-width="3" stroke-linecap="round"/>`,
+  tire: () => `${shadow(16)}<ellipse cx="0" cy="-8" rx="18" ry="8" fill="#2a2d33"/><ellipse cx="0" cy="-10" rx="18" ry="8" fill="#3a3e46"/><ellipse cx="0" cy="-10" rx="9" ry="3.5" fill="#1a1c20"/>`,
+  medal: () => `<path d="M-8 -48 L-2 -32 M8 -48 L2 -32" stroke="#2f6bff" stroke-width="5"/><circle cx="0" cy="-20" r="13" fill="#ffc533"/><circle cx="0" cy="-20" r="9" fill="none" stroke="#c98a14" stroke-width="2"/>${text(0, -19.5, '1', 'font-family="Inter" font-weight="800" font-size="10" fill="#8a5a00"')}`,
+  log: () => `${shadow(20)}<rect x="-20" y="-16" width="38" height="14" rx="7" fill="#8a5a3a"/><ellipse cx="18" cy="-9" rx="5" ry="7" fill="#d9a46a"/><ellipse cx="18" cy="-9" rx="2" ry="3" fill="none" stroke="#8a5a3a"/><path d="M-12 -12 h14 M-6 -6 h16" stroke="#6a4028" stroke-width="1.5"/>`,
+  rock: () => `<path d="M-18 0 L-14 -16 L-4 -24 L8 -22 L17 -10 L18 0Z" fill="#8a919c"/><path d="M-4 -24 L8 -22 L17 -10 L18 0 L6 0Z" fill="${D}"/><path d="M-12 -14 L-4 -20" stroke="#fff" stroke-opacity=".4" stroke-width="2" stroke-linecap="round"/>`,
+  star: () => `<g transform="translate(0 -22)"><path d="M0 -16 L4.7 -6.5 L15.2 -4.9 L7.6 2.5 L9.4 13 L0 8 L-9.4 13 L-7.6 2.5 L-15.2 -4.9 L-4.7 -6.5Z" fill="#ffc533" stroke="#e69a10" stroke-width="2" stroke-linejoin="round"/><circle cx="-3" cy="-1" r="1.5" fill="#6a4000"/><circle cx="3" cy="-1" r="1.5" fill="#6a4000"/></g>`,
+  works: () => `${shadow(16)}<rect x="-2" y="-18" width="4" height="18" fill="#5a606a"/><path d="M0 -46 L18 -16 L-18 -16Z" fill="#fff" stroke="#e53935" stroke-width="4" stroke-linejoin="round"/><path d="M-5 -22 l4 -9 l4 3 l3 6" stroke="#222" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="1" cy="-34" r="2" fill="#222"/>`,
+  oil: () => `<g transform="scale(1.35)"><path d="M-20 -2 C-22 -8 -12 -9 -8 -7 C-4 -11 6 -10 8 -6 C14 -9 22 -6 20 -1Z" fill="#1d1f26"/><path d="M-10 -5 C-6 -7 0 -6 2 -5" stroke="#8a6aff" stroke-width="1.5" fill="none" opacity=".8"/><path d="M4 -4 C8 -6 12 -5 14 -4" stroke="#3ad6c8" stroke-width="1.5" fill="none" opacity=".8"/></g>`,
+};
+
+const HEROES = [
+  { name: 'Scooter Courier', vertical: 'Mobility · delivery', note: 'Standing e-scooter rider with a branded delivery box.', bg: 'linear-gradient(#ffe9df,#fff6f1)',
+    draw: () => courier({ jacket: '#ff5a36', stripe: '#ffc857', pants: '#2b3245', pantsDark: '#1f2433', shoe: '#f4f4f4', skin: '#f2c3a0', helmet: '#ffc857', ink: '#1a1a22', box: '#ff5a36', boxMark: '#fff', frame: '#4a5263', deck: '#2b3245', tire: '#1a1d24', rim: '#c8ccd4' }),
+    props: [['cone', 'Cone', 'jump'], ['puddle', 'Pothole', 'jump'], ['token', 'Ride credit', 'collect']] },
+  { name: 'Coin Buddy', vertical: 'Banking · fintech', note: 'A running coin mascot dodging fees and red tape, collecting cashback.', bg: 'linear-gradient(#e6f0ff,#f5f9ff)',
+    draw: () => coinBuddy({ gold: '#ffc533', edge: '#d9930f', limb: '#1d2a4d', shoe: '#2f6bff', ink: '#1d2a4d' }),
+    props: [['fee', 'Hidden fee', 'jump'], ['paperwork', 'Red tape', 'double jump'], [() => P.token('#3dd68c', '%'), 'Cashback', 'collect']] },
+  { name: 'Fizz Can', vertical: 'FMCG · drinks', note: 'The product itself is the hero: the can runs, bubbles trailing.', bg: 'linear-gradient(#ffe4e1,#fff5f3)',
+    draw: () => sodaCan({ can: '#e8402b', label: '#fff', brand: '<tspan fill="#e8402b">FIZZ</tspan>', metal: '#e3e6ea', metalDark: '#a9aeb6', limb: '#2a1a1a', shoe: '#ffd84a', ink: '#2a1a1a' }),
+    props: [['crate', 'Crate', 'jump'], ['peel', 'Banana peel', 'jump'], [() => P.cap(), 'Bottle cap', 'collect']] },
+  { name: 'Jet-set Suitcase', vertical: 'Travel · airlines', note: 'A rolling suitcase in sunglasses, covered in trip stickers.', bg: 'linear-gradient(#dff4ff,#f2fbff)',
+    draw: () => suitcase({ case: '#2f8cff', metal: '#c8ccd4', ink: '#1a2233', sticker1: '#ffd84a', sticker2: '#ff5a7a' }),
+    props: [['stanchion', 'Queue', 'jump'], ['delayed', 'Delay', 'double jump'], ['ticket', 'Free ticket', 'collect']] },
+  { name: 'Shopping Cart', vertical: 'Retail · grocery', note: 'A loaded cart races the aisles. The goods on top are the client\'s products.', bg: 'linear-gradient(#e4f8ea,#f4fcf6)',
+    draw: () => cart({ frame: '#4a5263', basket: 'rgba(63,191,111,.12)', box: '#e8402b', brand: 'SALE', accent: '#3fbf6f', ink: '#1a1d24' }),
+    props: [['wetfloor', 'Wet floor', 'jump'], ['boxes', 'Box stack', 'double jump'], ['tag', 'Discount', 'collect']] },
+  { name: 'Sprinter', vertical: 'Sport · energy drinks', note: 'An athlete in a race bib: hurdles, tyres and medals.', bg: 'linear-gradient(#fff2d9,#fffaf0)',
+    draw: () => athlete({ skin: '#c98a5e', shirt: '#2f6bff', shorts: '#1d2a4d', shoe: '#ff3d6e', hair: '#2a1a12', accent: '#ff3d6e', ink: '#1a1a22' }),
+    props: [['hurdle', 'Hurdle', 'jump'], ['tire', 'Tyre', 'jump'], ['medal', 'Medal', 'collect']] },
+  { name: 'Brand Mascot', vertical: 'Kids · family · any mascot', note: 'Any brand animal works. Here, a fox in a branded scarf.', bg: 'linear-gradient(#ecf7e4,#f7fcf3)',
+    draw: () => fox({ fur: '#ff8a2a', sock: '#5a2e14', ink: '#2a1a12', accent: '#2f6bff' }),
+    props: [['log', 'Log', 'jump'], ['rock', 'Rock', 'jump'], ['star', 'Star', 'collect']] },
+  { name: 'City Car', vertical: 'Automotive · car sharing', note: 'A compact car in client livery. Swap in the real model silhouette.', bg: 'linear-gradient(#eceefe,#f7f8ff)',
+    draw: () => car({ body: '#6b5bff', glass: '#bfe4ff', stripe: '#ffd84a', ink: '#1a1d24', brand: 'SHARE' }),
+    props: [['works', 'Road works', 'jump'], ['oil', 'Oil spill', 'jump'], [() => P.token('#3dd68c', '⚡'), 'Charge', 'collect']] },
+];
+
+const heroSvg = (body) => `<svg viewBox="-70 -122 140 128">${body}</svg>`;
+document.getElementById('heroes').innerHTML = HEROES.map((h) => `
+  <div class="card">
+    <div class="hero" style="background:${h.bg}">${heroSvg(h.draw())}</div>
+    <div class="props">${h.props.map(([k, label, verb]) => `<div class="prop"><svg viewBox="-26 -50 52 52">${typeof k === 'function' ? k() : P[k]()}</svg><b>${label}</b>${verb}</div>`).join('')}</div>
+    <div class="meta"><h3>${h.name}</h3><p>${h.note}</p><span class="pill">${h.vertical}</span></div>
+  </div>`).join('');
+
+/* ---------- Worlds: one map per hero, same layer stack ---------- */
+const MW = 480, MH = 220, G = 182;
+const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const grad = (id, stops, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</linearGradient>`;
+const skyline = (seed, x0, x1, step, minH, maxH, fill, win) => {
+  let s = '';
+  for (let x = x0, i = seed; x < x1; x += step, i++) {
+    const h = minH + rnd(i) * (maxH - minH), w = step - 3;
+    s += `<rect x="${x}" y="${G - h}" width="${w}" height="${h}" fill="${fill}"/>`;
+    if (win) for (let y = G - h + 8; y < G - 12; y += 11) for (let wx = x + 4; wx < x + w - 4; wx += 7) if (rnd(wx * 3 + y) > .45) s += `<rect x="${wx}" y="${y}" width="3" height="4" fill="${win}"/>`;
+  }
+  return s;
+};
+const pine = (x, y, h, c) => `<path d="M${x} ${y - h} L${x + h * .32} ${y - h * .45} L${x + h * .18} ${y - h * .45} L${x + h * .4} ${y} L${x - h * .4} ${y} L${x - h * .18} ${y - h * .45} L${x - h * .32} ${y - h * .45}Z" fill="${c}"/>`;
+const dashes = (y, c, w = 26, gap = 60) => Array.from({ length: 10 }, (_, i) => `<rect x="${i * gap - 10}" y="${y}" width="${w}" height="4" rx="2" fill="${c}"/>`).join('');
+
+const MAPS = [
+  { name: 'City Streets', layers: 'dusk skyline · billboards · street lamps · asphalt',
+    bg: () => `<defs>${grad('m0', [[0, '#241d48'], [.6, '#6a3a6e'], [1, '#ff8a5c']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m0)"/><circle cx="380" cy="150" r="40" fill="#ffb36b" opacity=".45"/>
+      ${skyline(3, -6, 490, 34, 60, 130, '#3a2d5c', '#ffcf7a')}
+      <g transform="translate(150 66)"><rect x="34" y="40" width="4" height="${G - 106}" fill="#1d1830"/><rect width="76" height="42" rx="4" fill="#ff5a36" stroke="#fff" stroke-width="2"/>
+        ${text(22, 21, 'GO', 'font-family="Bricolage Grotesque" font-size="17" fill="#fff"')}${text(54, 16, '−20%', 'font-family="Bricolage Grotesque" font-size="12" fill="#ffc857"')}${text(54, 29, 'FIRST RIDE', 'font-family="Inter" font-weight="800" font-size="5.5" fill="#fff"')}</g>
+      ${[40, 300, 460].map((x) => `<rect x="${x}" y="${G - 74}" width="3" height="74" fill="#1d1830"/><path d="M${x + 1} ${G - 74} q10 -4 14 2" stroke="#1d1830" stroke-width="3" fill="none"/><circle cx="${x + 15}" cy="${G - 70}" r="10" fill="#ffd27a" opacity=".3"/><circle cx="${x + 15}" cy="${G - 70}" r="3" fill="#fff1c9"/>`).join('')}
+      <rect y="${G - 6}" width="${MW}" height="6" fill="#4a3f63"/><rect y="${G}" width="${MW}" height="${MH - G}" fill="#1f1a2e"/>${dashes(G + 18, '#ffc857')}` },
+  { name: 'Financial District', layers: 'glass towers · bank hall · growth line · plaza',
+    bg: () => `<defs>${grad('m1', [[0, '#cfe2ff'], [1, '#f4f8ff']])}${grad('m1g', [[0, '#a9cbf2'], [1, '#5d8fd6']], 1, 0)}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m1)"/>
+      <path d="M20 120 L90 96 L140 108 L210 62 L260 74 L330 30" fill="none" stroke="#3dd68c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/><path d="M318 26 L334 28 L328 42" fill="none" stroke="#3dd68c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+      ${[[10, 40, 120], [56, 34, 150], [96, 46, 100], [200, 38, 140], [420, 52, 130], [244, 30, 90]].map(([x, w, h]) => `<rect x="${x}" y="${G - h}" width="${w}" height="${h}" fill="url(#m1g)"/>${Array.from({ length: Math.floor(w / 10) }, (_, i) => `<path d="M${x + 6 + i * 10} ${G - h} V${G}" stroke="#fff" stroke-opacity=".35"/>`).join('')}<path d="M${x} ${G - h} h${w * .4} L${x} ${G - h + 30}Z" fill="#fff" opacity=".25"/>`).join('')}
+      <g transform="translate(300 ${G})"><path d="M-6 -88 L56 -112 L118 -88Z" fill="#f4f1ea" stroke="#c9c1b0" stroke-width="2"/>${text(56, -97, 'BANK', 'font-family="Bricolage Grotesque" font-size="11" fill="#2f6bff"')}<rect x="-2" y="-88" width="116" height="8" fill="#e6e0d2"/>
+        ${[6, 26, 46, 66, 86, 104].map((x) => `<rect x="${x}" y="-80" width="8" height="72" fill="#fbf9f4"/><rect x="${x + 5}" y="-80" width="3" height="72" fill="${D}"/>`).join('')}<rect x="-6" y="-8" width="124" height="8" fill="#e6e0d2"/></g>
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#c9d1de"/>${Array.from({ length: 12 }, (_, i) => `<path d="M${i * 44} ${G} l-12 ${MH - G}" stroke="#b3bccb"/>`).join('')}<path d="M0 ${G + 14} H${MW}" stroke="#b3bccb"/>` },
+  { name: 'Summer Festival', layers: 'sun · sea · palms · stage tent · fairy lights · sand',
+    bg: () => `<defs>${grad('m2', [[0, '#ffcf87'], [1, '#ffb0b8']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m2)"/><circle cx="390" cy="112" r="44" fill="#fff1c0"/>
+      <rect y="132" width="${MW}" height="${G - 132}" fill="#3fb6d8"/>${[140, 152, 164].map((y, i) => `<path d="M${i * 30} ${y} q12 -4 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.5"/>`).join('')}
+      ${[40, 450].map((x) => `<path d="M${x} ${G} C${x - 4} ${G - 40} ${x + 6} ${G - 80} ${x + 2} ${G - 110}" stroke="#8a5a3a" stroke-width="6" fill="none" stroke-linecap="round"/>${[-60, -20, 20, 60, 100].map((a) => `<path d="M${x + 2} ${G - 110} q${Math.cos(a * Math.PI / 180) * 20} ${-12 + Math.sin(a * Math.PI / 180) * 10} ${Math.cos(a * Math.PI / 180) * 36} ${Math.sin(a * Math.PI / 180) * 24 + 6}" stroke="#2e9a5a" stroke-width="7" fill="none" stroke-linecap="round"/>`).join('')}`).join('')}
+      <g transform="translate(170 ${G})"><rect x="0" y="-60" width="110" height="60" fill="#fff4e0"/>${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M${i * 22 - 6} -60 L55 -100 L${i * 22 + 16} -60Z" fill="${i % 2 ? '#fff' : '#e8402b'}"/>`).join('')}<rect x="30" y="-46" width="50" height="46" fill="#3a2a4a"/>${text(55, -52, 'FIZZ FEST', 'font-family="Bricolage Grotesque" font-size="8" fill="#e8402b"')}</g>
+      <path d="M60 70 Q160 100 260 74 Q360 100 450 72" fill="none" stroke="#5a3a3a" stroke-width="1"/>${Array.from({ length: 16 }, (_, i) => { const t = i / 15, x = 60 + t * 390; const y = (t < .5 ? 70 + Math.sin(t * 2 * Math.PI) * 14 : 74 + Math.sin((t - .5) * 2 * Math.PI) * 13) + 1; return `<circle cx="${x}" cy="${y + 4}" r="3" fill="${['#ffd84a', '#ff5a7a', '#5ae0ff', '#7dff8a'][i % 4]}"/>`; }).join('')}
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#f4d7a0"/>${Array.from({ length: 30 }, (_, i) => `<circle cx="${rnd(i) * MW}" cy="${G + 6 + rnd(i + 50) * 30}" r="1.2" fill="#d9b478"/>`).join('')}` },
+  { name: 'Airport', layers: 'take-off sky · control tower · glass terminal · departure board',
+    bg: () => `<defs>${grad('m3', [[0, '#bfe0ff'], [1, '#eef7ff']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m3)"/>
+      <g transform="translate(360 46) rotate(-14)"><path d="M-60 2 H-8" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/><path d="M-30 0 H30 Q40 0 40 4 Q40 8 30 8 H-26 L-32 -6 H-26Z" fill="#fff"/><path d="M-4 4 L-16 22 H-8 L12 4Z M-4 2 L-12 -10 H-6 L8 2Z" fill="#dfe8f2"/><path d="M-26 4 H36" stroke="#2f8cff" stroke-width="1.5"/></g>
+      <g transform="translate(56 ${G})"><rect x="-6" y="-120" width="12" height="120" fill="#dfe6ef"/><path d="M-20 -138 H20 L14 -120 H-14Z" fill="#7fb8ea"/><rect x="-22" y="-144" width="44" height="6" fill="#c9d3df"/></g>
+      <path d="M100 ${G - 80} Q290 ${G - 104} ${MW + 10} ${G - 80} V${G} H100Z" fill="#e7edf5"/>
+      ${Array.from({ length: 12 }, (_, i) => `<rect x="${108 + i * 32}" y="${G - 74}" width="28" height="${48}" fill="#9fc6ea"/><path d="M${110 + i * 32} ${G - 72} l10 0 l-10 18z" fill="#fff" opacity=".35"/>`).join('')}
+      <g transform="translate(300 ${G - 22})"><rect x="0" y="-60" width="92" height="40" rx="3" fill="#1d2129"/>${['LIS 12:40', 'BCN 13:05', 'NYC DELAY'].map((t, i) => text(46, -50 + i * 11, t, `font-family="Inter" font-weight="800" font-size="7" fill="${i === 2 ? '#ffb020' : '#ffd84a'}"`)).join('')}</g>
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#d9dee6"/>${Array.from({ length: 8 }, (_, i) => `<rect x="${i * 64}" y="${G + 6}" width="30" height="2" fill="#fff" opacity=".7"/>`).join('')}<path d="M0 ${G + 24} H${MW}" stroke="#ffd84a" stroke-width="3"/>` },
+  { name: 'Supermarket', layers: 'product shelves · hanging sale signs · tiled floor',
+    bg: () => `<rect width="${MW}" height="${MH}" fill="#f6f2ea"/>
+      ${[0, 1, 2].map((u) => { const x = u * 166 + 6; return `<rect x="${x}" y="58" width="156" height="${G - 58}" fill="#e3ddd0"/>${[96, 134, 172].map((y) => `<rect x="${x}" y="${y}" width="156" height="5" fill="#b9b2a2"/>${Array.from({ length: 11 }, (_, k) => { const h = 18 + rnd(u * 40 + k + y) * 14, c = ['#e8402b', '#3fbf6f', '#ffd84a', '#2f6bff', '#ff8a2a', '#9b7cff'][Math.floor(rnd(k * 7 + y + u) * 6)]; return `<rect x="${x + 4 + k * 14}" y="${y - h}" width="12" height="${h}" rx="1.5" fill="${c}"/><rect x="${x + 6 + k * 14}" y="${y - h + 4}" width="8" height="4" fill="#fff" opacity=".6"/>`; }).join('')}`).join('')}`; }).join('')}
+      ${[[90, 'SALE −20%', '#e8402b'], [300, 'FRESH', '#3fbf6f']].map(([x, t, c]) => `<path d="M${x + 10} 0 V22 M${x + 60} 0 V22" stroke="#9a9384"/><rect x="${x}" y="22" width="70" height="24" rx="4" fill="${c}"/>${text(x + 35, 34, t, 'font-family="Bricolage Grotesque" font-size="10" fill="#fff"')}`).join('')}
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#e9e4da"/>${Array.from({ length: 24 }, (_, i) => Array.from({ length: 2 }, (_, r) => (i + r) % 2 ? `<rect x="${i * 20}" y="${G + r * 19}" width="20" height="19" fill="#d6cfc1"/>` : '').join('')).join('')}` },
+  { name: 'Stadium', layers: 'floodlights · crowd stands · sponsor boards · running track',
+    bg: () => `<defs>${grad('m5', [[0, '#16204a'], [1, '#3f4f92']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m5)"/>
+      ${[30, 440].map((x) => `<rect x="${x}" y="20" width="4" height="${G}" fill="#2a3566"/><circle cx="${x + 2}" cy="26" r="26" fill="#fff6c9" opacity=".18"/><rect x="${x - 12}" y="14" width="28" height="18" rx="2" fill="#fff6c9"/>`).join('')}
+      <path d="M0 150 L0 80 L480 70 L480 150Z" fill="#2a3566"/>${Array.from({ length: 220 }, (_, i) => `<circle cx="${rnd(i) * MW}" cy="${84 + rnd(i + 999) * 62}" r="2" fill="${['#ff5a7a', '#ffd84a', '#5ae0ff', '#fff', '#2f6bff'][i % 5]}" opacity=".75"/>`).join('')}
+      <rect y="150" width="${MW}" height="16" fill="#2f6bff"/>${[60, 220, 380].map((x) => text(x, 158, 'ENERGY ⚡ DRINK', 'font-family="Bricolage Grotesque" font-size="9" fill="#fff"')).join('')}
+      <rect y="166" width="${MW}" height="${G - 166}" fill="#4caf6a"/>
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#d9553f"/>${[G + 12, G + 26].map((y) => `<path d="M0 ${y} H${MW}" stroke="#fff" stroke-width="1.5" opacity=".8"/>`).join('')}` },
+  { name: 'Forest Trail', layers: 'misty hills · layered pines · mushrooms · dirt path',
+    bg: () => `<defs>${grad('m6', [[0, '#d6eeff'], [1, '#f2fbe6']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m6)"/><circle cx="90" cy="60" r="22" fill="#fff6c9"/>
+      <path d="M0 120 Q80 80 160 110 T320 100 T480 108 V${G} H0Z" fill="#b9dcb0"/>
+      ${Array.from({ length: 14 }, (_, i) => pine(i * 36 + 10, 150, 54 + rnd(i) * 20, '#7fb98a')).join('')}
+      ${Array.from({ length: 9 }, (_, i) => pine(i * 58 + 30, G, 70 + rnd(i + 20) * 30, '#2f6b4a')).join('')}
+      ${[[200, '#e8402b'], [400, '#ff8a2a']].map(([x, c]) => `<rect x="${x - 2}" y="${G - 10}" width="4" height="10" fill="#fff4e0"/><path d="M${x - 8} ${G - 9} Q${x} ${G - 22} ${x + 8} ${G - 9}Z" fill="${c}"/><circle cx="${x - 2}" cy="${G - 14}" r="1.4" fill="#fff"/>`).join('')}
+      <rect y="${G - 4}" width="${MW}" height="6" fill="#7cc46a"/><rect y="${G + 2}" width="${MW}" height="${MH - G}" fill="#c8925a"/>${Array.from({ length: 16 }, (_, i) => `<ellipse cx="${rnd(i + 5) * MW}" cy="${G + 12 + rnd(i + 70) * 24}" rx="4" ry="1.5" fill="#a87440"/>`).join('')}` },
+  { name: 'Countryside Highway', layers: 'rolling hills · wind turbines · guardrail · EV sign',
+    bg: () => `<defs>${grad('m7', [[0, '#9fd4ff'], [1, '#e9f6ff']])}</defs>
+      <rect width="${MW}" height="${MH}" fill="url(#m7)"/>
+      ${[[70, 40], [330, 30]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="30" ry="9" fill="#fff"/><ellipse cx="${x + 16}" cy="${y - 6}" rx="16" ry="9" fill="#fff"/>`).join('')}
+      <path d="M0 130 Q120 90 240 124 T480 112 V${G} H0Z" fill="#a8dc86"/>
+      ${[[110, 108], [190, 118], [400, 104]].map(([x, y]) => `<rect x="${x - 1.5}" y="${y - 50}" width="3" height="50" fill="#fff"/>${[0, 120, 240].map((a) => `<path d="M${x} ${y - 50} l0 -24" stroke="#fff" stroke-width="3" stroke-linecap="round" transform="rotate(${a + 15} ${x} ${y - 50})"/>`).join('')}<circle cx="${x}" cy="${y - 50}" r="2.5" fill="#dfe6ef"/>`).join('')}
+      <path d="M0 160 Q140 136 280 156 T480 150 V${G} H0Z" fill="#7cc45a"/>
+      ${[40, 260, 300, 450].map((x) => `<rect x="${x - 2}" y="${G - 34}" width="4" height="20" fill="#7a5a3a"/><circle cx="${x}" cy="${G - 40}" r="14" fill="#3f9a4a"/>`).join('')}
+      <g transform="translate(210 ${G})"><rect x="-2" y="-52" width="4" height="52" fill="#8a909a"/><rect x="-30" y="-74" width="60" height="26" rx="3" fill="#1f8a4c" stroke="#fff" stroke-width="1.5"/>${text(0, -66, 'EV ⚡ CHARGE', 'font-family="Inter" font-weight="800" font-size="7" fill="#fff"')}${text(0, -56, '2 km', 'font-family="Inter" font-weight="800" font-size="7" fill="#fff"')}</g>
+      <path d="M0 ${G - 10} H${MW}" stroke="#c9ced8" stroke-width="4"/>${Array.from({ length: 13 }, (_, i) => `<rect x="${i * 40}" y="${G - 10}" width="3" height="10" fill="#9aa1ad"/>`).join('')}
+      <rect y="${G}" width="${MW}" height="${MH - G}" fill="#4a505c"/>${dashes(G + 18, '#fff')}` },
+];
+
+const place = (k, x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})">${typeof k === 'function' ? k() : P[k]()}</g>`;
+document.getElementById('maps').innerHTML = MAPS.map((m, i) => {
+  const h = HEROES[i];
+  return `<div class="card">
+    <svg class="map" viewBox="0 0 ${MW} ${MH}">${m.bg()}
+      <g transform="translate(112 ${G}) scale(.74)">${h.draw()}</g>
+      ${place(h.props[0][0], 252, G, .95)}
+      ${[[310, G - 34], [338, G - 46], [366, G - 34]].map(([x, y]) => place(h.props[2][0], x, y, .55)).join('')}
+      ${place(h.props[1][0], 432, G, .95)}
+    </svg>
+    <div class="meta"><h3>${m.name} <span style="color:var(--muted-foreground);font-weight:500">· ${h.name}</span></h3><p>${m.layers}</p></div>
+  </div>`;
+}).join('');
+
+/* ---------- One rig, seven skins ---------- */
+const PX_COURIER = ['......HHH.......', '.....HHHHH......', '.....HHHHHH.....', '.....ssses......', '......ss....tff.', '.bbbJjjjjsss.f..', '.bbbJjjjj....f..', '.bmbJjjjj....f..', '.bbbJjjjj....fl.', '.bbbJjjjj....f..', '....Jjjjj....f..', '.....pppp....f..', '....pp..pp...f..', '...pp....pp..f..', '...pp....pp..f..', '..kkk...kkk..f..', '.ddddddddddddd..', '.tt.........tt..', 'tttt.......tttt.', '.tt.........tt..'];
+function pixel(map, pal, s) {
+  let out = '';
+  map.forEach((row, j) => [...row].forEach((c, i) => { if (pal[c]) out += `<rect x="${i * s}" y="${j * s}" width="${s + .05}" height="${s + .05}" fill="${pal[c]}"/>`; }));
+  return out;
+}
+const neon = 'filter="url(#ng)"';
+const SKINS = [
+  { name: 'Premium Glossy', bg: 'radial-gradient(ellipse at 50% 100%, #4a2010, #0d0b12 70%)',
+    body: () => courier({ jacket: '#ff5a36', stripe: '#ffc857', pants: '#3a3f58', pantsDark: '#262a3d', shoe: '#fff', skin: '#f2c3a0', helmet: '#ffc857', ink: '#14141c', box: '#ff5a36', boxMark: '#ffc857', frame: '#c8ccd4', deck: '#ffc857', tire: '#14171f', rim: '#ff5a36' }) },
+  { name: 'Clean Minimal', bg: '#eef2f7',
+    body: () => courier({ jacket: '#2f6bff', stripe: '#2f6bff', pants: '#1b1d22', pantsDark: '#1b1d22', shoe: '#1b1d22', skin: '#f0d2bc', helmet: '#1b1d22', ink: '#1b1d22', box: '#1b1d22', boxMark: '#2f6bff', frame: '#1b1d22', deck: '#1b1d22', tire: '#1b1d22', rim: '#fff' }, { shade: false }) },
+  { name: 'Neo-Brutal', bg: '#ffe94a',
+    body: () => courier({ jacket: '#6b5bff', stripe: '#3dff8b', pants: '#ff7ab6', pantsDark: '#ff7ab6', shoe: '#fff', skin: '#ffd2b0', helmet: '#ff5a1f', ink: '#000', box: '#3dff8b', boxMark: '#000', frame: '#000', deck: '#ff5a1f', tire: '#000', rim: '#fff' }, { shade: false, st: 'stroke="#000" stroke-width="2.4" stroke-linejoin="round"', outline: { c: '#000', w: 2.4 } }) },
+  { name: 'Pixel Arcade', bg: '#6ec6ff',
+    body: () => `<g transform="translate(-44 -110)" shape-rendering="crispEdges">${pixel(PX_COURIER, { H: '#ffd23f', s: '#f2b48a', e: '#222', j: '#e8402b', J: '#a82a1c', b: '#2a4bd7', m: '#fff', p: '#2a4bd7', k: '#222', d: '#222', t: '#222', f: '#bbb', l: '#ffd23f' }, 5.5)}</g>` },
+  { name: 'Sunset Silhouette', bg: 'linear-gradient(#3d2a6b, #c8577e 60%, #ffab6b)',
+    body: () => courier({ jacket: '#2a1436', stripe: '#2a1436', pants: '#2a1436', pantsDark: '#2a1436', shoe: '#2a1436', skin: '#2a1436', helmet: '#2a1436', ink: '#2a1436', box: '#2a1436', boxMark: '#ffb36b', frame: '#2a1436', deck: '#2a1436', tire: '#2a1436', rim: '#ffb36b' }, { shade: false, noShadow: true, st: 'stroke="#ffb36b" stroke-width=".7"' }) },
+  { name: 'Soft 3D / Clay', bg: 'linear-gradient(#cfe3ff, #ffe1ee)',
+    body: () => courier({ jacket: '#9b7cff', stripe: '#ffd6e6', pants: '#7fd1b9', pantsDark: '#5fb89e', shoe: '#fff', skin: '#ffd9c2', helmet: '#ffb3d1', ink: '#3a2a5c', box: '#ffd166', boxMark: '#fff', frame: '#b9a6e8', deck: '#ffb3d1', tire: '#6b5a8a', rim: '#ffd6e6' }) },
+  { name: 'Paper Cutout', bg: '#f8e9cc',
+    body: () => `<defs><filter id="ps" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2.5" stdDeviation="1.8" flood-color="#5a3a20" flood-opacity=".4"/></filter></defs>
+      <g filter="url(#ps)">${courier({ jacket: '#3a6ea5', stripe: '#ffd166', pants: '#7a4a2a', pantsDark: '#5e3820', shoe: '#fff4e0', skin: '#f2c3a0', helmet: '#ff6b4a', ink: '#3b2a20', box: '#ffd166', boxMark: '#ff6b4a', frame: '#7a4a2a', deck: '#ff6b4a', tire: '#3b2a20', rim: '#fff4e0' }, { shade: false, noShadow: true })}</g>` },
+  { name: 'Synthwave / Neon', bg: 'linear-gradient(#0b0020, #3a0a5c 70%, #b0175e)',
+    body: () => `<defs><filter id="ng" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <g ${neon}>${courier({ jacket: '#14002a', stripe: '#ff2bd6', pants: '#22e3ff', pantsDark: '#22e3ff', shoe: '#14002a', skin: '#14002a', helmet: '#14002a', ink: '#22e3ff', box: '#14002a', boxMark: '#ff2bd6', frame: '#22e3ff', deck: '#14002a', tire: '#14002a', rim: '#ff2bd6' }, { shade: false, noShadow: true, st: 'stroke="#22e3ff" stroke-width="1.6"' })}</g>` },
+];
+document.getElementById('styles').innerHTML = SKINS.map((s) => `
+  <div class="card"><div class="hero" style="background:${s.bg}">${heroSvg(s.body())}</div><div class="meta"><h3>${s.name}</h3></div></div>`).join('');
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ const raw: z.input<typeof CampaignConfigSchema> = {
     primaryColor: '#1a6bff',
     secondaryColor: '#0c1220',
     logoUrl: `${import.meta.env.BASE_URL}assets/bank/logo.svg`,
-    fontFamily: 'system-ui, sans-serif',
+    fontFamily: 'Manrope, system-ui, sans-serif',
     backgroundHint: '#080e1a',
   },
   wheel: {

@@ -1,5 +1,5 @@
 // Production build: builds each Vite prototype under its own base path
-// (wheel, scratch, runner, plinko), then assembles hub + all app builds into
+// (wheel, scratch, runner, plinko, catch), then assembles hub + all app builds into
 // one static dist/ so the suite ships as a single Vercel project (see vercel.ts).
 import { execSync } from 'node:child_process';
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
@@ -20,9 +20,11 @@ build('wheel', '/wheel/');
 build('scratch', '/scratch/');
 build('runner', '/runner/');
 build('plinko', '/plinko/');
+build('catch', '/catch/');
 
 cpSync(`${ROOT}apps/hub`, `${ROOT}dist`, { recursive: true });
 cpSync(`${ROOT}apps/wheel/dist`, `${ROOT}dist/wheel`, { recursive: true });
 cpSync(`${ROOT}apps/scratch/dist`, `${ROOT}dist/scratch`, { recursive: true });
 cpSync(`${ROOT}apps/runner/dist`, `${ROOT}dist/runner`, { recursive: true });
 cpSync(`${ROOT}apps/plinko/dist`, `${ROOT}dist/plinko`, { recursive: true });
+cpSync(`${ROOT}apps/catch/dist`, `${ROOT}dist/catch`, { recursive: true });

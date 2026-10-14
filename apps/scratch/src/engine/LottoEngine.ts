@@ -2,7 +2,8 @@ import { Application, Container, Graphics, RenderTexture, Sprite, Text } from 'p
 import gsap from 'gsap';
 import type { LottoConfig, LottoSymbol } from '../config/lottoSchema';
 import type { LottoResult } from '../lib/lottoResolver';
-import { buildFoilCoverArt } from './foilCover';
+import { FoilPainter } from './foilCover';
+import { Gradients } from './gradients';
 
 export interface LottoEngineOptions {
   container: HTMLElement;
@@ -17,6 +18,7 @@ export interface LottoEngineOptions {
 // just scaled down to a tile instead of a full card.
 const TILE_REVEAL_THRESHOLD = 0.5;
 const ERASER_RADIUS = 15;
+const REVEAL_HOLD_MS = 1100;
 const CELL_SIZE = 10;
 const TILE_GAP = 8;
 
@@ -40,6 +42,7 @@ interface Tile {
 export class LottoEngine {
   private app: Application | null = null;
   private destroyed = false;
+  private holdTimer: number | null = null;
   private options: LottoEngineOptions;
 
   private tiles: Tile[] = [];
@@ -58,6 +61,9 @@ export class LottoEngine {
   private lastLocalPoint: { x: number; y: number } | null = null;
   private sparkleRoot: Container | null = null;
   private iconByTile = new Map<number, Text>();
+  private glowByTile = new Map<number, Graphics>();
+  private gradients = new Gradients();
+  private foil = new FoilPainter();
 
   constructor(options: LottoEngineOptions) {
     this.options = options;
@@ -65,7 +71,12 @@ export class LottoEngine {
   }
 
   async mount(): Promise<void> {
-    const { container } = this.options;
+    const { container, config } = this.options;
+    try {
+      await document.fonts.load(`800 16px ${(config.branding.fontFamily ?? 'system-ui').split(',')[0].trim()}`);
+    } catch {
+      // Unknown family — Pixi falls back to the default font.
+    }
     const app = new Application();
     await app.init({
       resizeTo: container,
@@ -107,9 +118,17 @@ export class LottoEngine {
     const { width, height } = app.screen;
     if (width <= 0 || height <= 0) return;
 
-    for (const tile of this.tiles) tile.coverTexture.destroy(true);
-    app.stage.removeChildren();
+    for (const tile of this.tiles) {
+      gsap.killTweensOf(tile.coverSprite);
+      tile.coverTexture.destroy(true);
+    }
+    this.iconByTile.forEach((icon) => gsap.killTweensOf(icon.scale));
+    this.glowByTile.forEach((glow) => gsap.killTweensOf(glow));
+    // `context: true` frees each Graphics' context; without it the renderer keeps old scenes alive.
+    app.stage.removeChildren().forEach((child) => child.destroy({ children: true, context: true }));
+    this.gradients.release();
     this.iconByTile.clear();
+    this.glowByTile.clear();
     this.sparkleRoot = new Container();
 
     const { rows, cols } = this.options.config.grid;
@@ -134,14 +153,29 @@ export class LottoEngine {
     const symbol = this.symbolFor(symbolId);
     const { branding } = this.options.config;
 
+    const g = this.gradients;
+    const r = Math.max(8, size * 0.12);
     const prizeLayer = new Container();
     prizeLayer.x = x;
     prizeLayer.y = y;
-    prizeLayer.addChild(new Graphics().roundRect(0, 0, size, size, 10).fill(branding.primaryColor));
+    // Win glow ring, shown by highlightMatches().
+    const glow = new Graphics().roundRect(-3, -3, size + 6, size + 6, r + 3).stroke({ width: 3, color: branding.primaryColor });
+    glow.alpha = 0;
+    this.glowByTile.set(index, glow);
+    prizeLayer.addChild(glow);
     prizeLayer.addChild(
-      new Graphics().roundRect(3, 3, size - 6, size - 6, 8).stroke({ width: 1, color: 0xffffff, alpha: 0.2 }),
+      // Solid base; the radial glow on top adds the depth.
+      new Graphics().roundRect(0, 0, size, size, r).fill(branding.secondaryColor),
     );
-    const icon = new Text({ text: symbol.icon, style: { fontSize: size * 0.5 } });
+    prizeLayer.addChild(
+      new Graphics()
+        .roundRect(0, 0, size, size, r)
+        .fill(g.radial([[0, branding.primaryColor, 0.45], [1, branding.primaryColor, 0]], size / 2, size / 2, size * 0.62)),
+    );
+    prizeLayer.addChild(
+      new Graphics().roundRect(4, 4, size - 8, size - 8, r - 3).stroke({ width: 1, color: 0xffffff, alpha: 0.14 }),
+    );
+    const icon = new Text({ text: symbol.icon, style: { fontSize: size * 0.48 } });
     icon.anchor.set(0.5);
     icon.x = size / 2;
     icon.y = size / 2;
@@ -149,19 +183,17 @@ export class LottoEngine {
     this.iconByTile.set(index, icon);
     app.stage.addChild(prizeLayer);
 
-    const coverTexture = RenderTexture.create({ width: size, height: size });
-    const coverArt = buildFoilCoverArt({
+    const coverTexture = RenderTexture.create({ width: size, height: size, resolution: app.renderer.resolution });
+    this.foil.paint(app.renderer, coverTexture, {
       width: size,
       height: size,
       baseColor: branding.secondaryColor,
       accentColor: branding.primaryColor,
-      cornerRadius: 10,
-      hint: size >= 64 ? 'SCRATCH' : undefined,
-      hintSize: Math.max(8, size * 0.14),
-      watermark: branding.centerLabel,
+      cornerRadius: r,
+      hint: '?',
+      hintSize: Math.max(12, size * 0.22),
+      fontFamily: branding.fontFamily,
     });
-    app.renderer.render({ container: coverArt, target: coverTexture, clear: true });
-    coverArt.destroy({ children: true });
 
     const coverSprite = new Sprite(coverTexture);
     coverSprite.x = x;
@@ -342,7 +374,9 @@ export class LottoEngine {
         this.revealedCount += 1;
         if (this.revealedCount === this.tiles.length && this.result) {
           this.highlightMatches();
-          this.options.onRevealEnd?.(this.result);
+          const result = this.result;
+          // Let the matched tiles pulse before the result modal covers them.
+          this.holdTimer = window.setTimeout(() => this.options.onRevealEnd?.(result), REVEAL_HOLD_MS);
         }
       },
     });
@@ -353,6 +387,8 @@ export class LottoEngine {
     if (!result?.isWin || !result.symbol) return;
     this.tiles.forEach((tile, index) => {
       if (tile.symbolId !== result.symbol!.id) return;
+      const glow = this.glowByTile.get(index);
+      if (glow) gsap.to(glow, { alpha: 1, duration: 0.25, yoyo: true, repeat: 4, ease: 'sine.inOut' });
       const icon = this.iconByTile.get(index);
       if (!icon) return;
       gsap.fromTo(
@@ -365,12 +401,15 @@ export class LottoEngine {
 
   destroy(): void {
     this.destroyed = true;
+    if (this.holdTimer !== null) window.clearTimeout(this.holdTimer);
     for (const tile of this.tiles) {
       gsap.killTweensOf(tile.coverSprite);
       tile.coverTexture.destroy(true);
     }
     this.eraserRoot.destroy({ children: true });
     this.app?.destroy(true, { children: true });
+    this.gradients.release();
+    this.foil.destroy();
     this.app = null;
     this.tiles = [];
     this.sparkleRoot = null;

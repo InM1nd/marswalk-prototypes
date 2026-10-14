@@ -4,7 +4,8 @@ export const WheelSegmentSchema = z.object({
   id: z.string(),
   label: z.string().max(20),
   color: z.string(),
-  textColor: z.string().default('#FFFFFF'),
+  // Omit to auto-pick dark/light text from the segment color.
+  textColor: z.string().optional(),
   weight: z.number().min(0).max(100),
   prize: z.object({
     code: z.string(),

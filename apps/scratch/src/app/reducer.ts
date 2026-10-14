@@ -3,6 +3,9 @@
 // types, so a second mechanic (the lotto grid) with its own config schema
 // and its own resolved-prize shape can flow through the same shell.
 export interface ResolvedPrize {
+  /** Short display name and accent color for the result badge / lead-form chip. */
+  label?: string;
+  color?: string;
   prize: {
     code: string;
     description: string;

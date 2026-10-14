@@ -1,7 +1,9 @@
 import { Application, Container, Graphics, RenderTexture, Sprite, Text } from 'pixi.js';
 import gsap from 'gsap';
 import type { CampaignConfig, PrizeSlot } from '../config/schema';
-import { buildFoilCoverArt } from './foilCover';
+import { FoilPainter } from './foilCover';
+import { Gradients } from './gradients';
+import { onColor } from '../lib/color';
 
 export interface ScratchEngineOptions {
   container: HTMLElement;
@@ -14,6 +16,7 @@ export interface ScratchEngineOptions {
 
 const REVEAL_THRESHOLD = 0.55;
 const ERASER_RADIUS = 26;
+const REVEAL_HOLD_MS = 1100;
 const CELL_SIZE = 20;
 
 interface ScratchGrid {
@@ -25,6 +28,7 @@ interface ScratchGrid {
 export class ScratchEngine {
   private app: Application | null = null;
   private destroyed = false;
+  private holdTimer: number | null = null;
   private options: ScratchEngineOptions;
 
   private coverTexture: RenderTexture | null = null;
@@ -43,6 +47,8 @@ export class ScratchEngine {
   private activePointerId: number | null = null;
   private lastProgressEmit = 0;
   private sheenTween: gsap.core.Tween | null = null;
+  private gradients = new Gradients();
+  private foil = new FoilPainter();
 
   constructor(options: ScratchEngineOptions) {
     this.options = options;
@@ -53,7 +59,7 @@ export class ScratchEngine {
     const { container, config } = this.options;
     try {
       const family = (config.branding.fontFamily ?? 'system-ui').split(',')[0].trim();
-      await document.fonts.load(`700 16px ${family}`);
+      await document.fonts.load(`800 16px ${family}`);
       await document.fonts.ready;
     } catch {
       // ignore font load failures
@@ -114,7 +120,11 @@ export class ScratchEngine {
     };
 
     this.sheenTween?.kill();
-    app.stage.removeChildren();
+    if (this.prizeTitle) gsap.killTweensOf(this.prizeTitle.scale);
+    gsap.killTweensOf(this.coverSprite);
+    // `context: true` frees each Graphics' context; without it the renderer keeps old scenes alive.
+    app.stage.removeChildren().forEach((child) => child.destroy({ children: true, context: true }));
+    this.gradients.release();
 
     const prize = this.drawPrizeLayer(width, height);
     app.stage.addChild(prize);
@@ -138,101 +148,108 @@ export class ScratchEngine {
     app.stage.addChild(sparkles);
   }
 
+  /** The ticket under the foil: dark card, prize-colored glow, big label, code chip. */
   private drawPrizeLayer(width: number, height: number): Container {
     const layer = new Container();
-    const { branding, copy } = this.options.config;
+    const { branding } = this.options.config;
     const segment = this.segment;
+    const g = this.gradients;
     const fontFamily = branding.fontFamily ?? 'system-ui, sans-serif';
+    const isWin = segment.prize.isWin;
+    const glowColor = isWin ? segment.color : '#8b8b9a';
+    const r = 16;
 
-    // Soft panel under prize (not flat slab).
-    layer.addChild(new Graphics().roundRect(0, 0, width, height, 16).fill(segment.color));
     layer.addChild(
       new Graphics()
-        .roundRect(0, 0, width, height, 16)
-        .fill({ color: branding.secondaryColor, alpha: 0.22 }),
+        .roundRect(0, 0, width, height, r)
+        // Solid base; the radial glow on top adds the depth.
+        .fill(branding.secondaryColor),
     );
+    // Prize-colored glow; transparent last stop (see Gradients.radial).
+    const glowR = Math.max(width, height) * 0.62;
     layer.addChild(
       new Graphics()
-        .roundRect(10, 10, width - 20, height - 20, 12)
-        .stroke({ width: 1.5, color: '#ffffff', alpha: 0.18 }),
+        .roundRect(0, 0, width, height, r)
+        .fill(g.radial([[0, glowColor, isWin ? 0.55 : 0.18], [0.55, glowColor, isWin ? 0.16 : 0.05], [1, glowColor, 0]], width / 2, height * 0.55, glowR)),
     );
+    // Guilloché-style rings, like a banknote / premium ticket.
+    const rings = new Graphics();
+    for (let i = 1; i <= 7; i++) rings.circle(width / 2, height * 0.55, i * Math.min(width, height) * 0.11);
+    rings.stroke({ width: 1, color: 0xffffff, alpha: 0.05 });
+    layer.addChild(rings);
+    layer.addChild(new Graphics().roundRect(8, 8, width - 16, height - 16, r - 6).stroke({ width: 1, color: 0xffffff, alpha: 0.14 }));
 
-    // Brand strip.
-    layer.addChild(new Graphics().roundRect(0, 0, width, 36, 16).fill(branding.primaryColor));
-    layer.addChild(new Graphics().rect(0, 20, width, 16).fill(branding.primaryColor));
-    const brandLabel = new Text({
-      text: branding.centerLabel,
-      style: {
-        fill: branding.secondaryColor,
-        fontSize: 13,
-        fontWeight: 'bold',
-        letterSpacing: 1.5,
-        fontFamily,
-      },
+    // Header: brand mark left, ticket number right.
+    const small = Math.max(10, height * 0.055);
+    const brand = new Text({
+      text: branding.centerLabel.toUpperCase(),
+      style: { fill: branding.primaryColor, fontSize: small, fontWeight: '800', letterSpacing: small * 0.2, fontFamily },
     });
-    brandLabel.anchor.set(0.5);
-    brandLabel.x = width / 2;
-    brandLabel.y = 18;
-    layer.addChild(brandLabel);
+    brand.position.set(20, 18);
+    const serial = new Text({
+      text: `Nº ${String(1000 + ((this.segmentIndex * 7919) % 9000)).padStart(4, '0')}`,
+      style: { fill: 0xffffff, fontSize: small, fontWeight: '600', letterSpacing: small * 0.08, fontFamily },
+    });
+    serial.alpha = 0.4;
+    serial.anchor.set(1, 0);
+    serial.position.set(width - 20, 18);
+    layer.addChild(brand, serial);
 
+    const titleSize = Math.max(22, Math.min(width * 0.12, height * 0.2));
     const title = new Text({
-      text: segment.prize.isWin ? segment.label : 'No luck this time',
+      text: isWin ? segment.label : 'No luck this time',
       style: {
-        fill: segment.textColor,
-        fontSize: Math.max(18, Math.min(width, height) * 0.08),
-        fontWeight: 'bold',
+        fill: isWin ? 0xffffff : 0xb8b8c6,
+        fontSize: isWin ? titleSize : titleSize * 0.62,
+        fontWeight: '800',
         align: 'center',
+        letterSpacing: -titleSize * 0.01,
         fontFamily,
+        dropShadow: isWin ? { color: glowColor, alpha: 0.9, blur: 14, distance: 0, angle: 0 } : undefined,
       },
     });
+    if (title.width > width * 0.86) title.scale.set((width * 0.86) / title.width);
     title.anchor.set(0.5);
-    title.x = width / 2;
-    title.y = height / 2 - (segment.prize.isWin ? 12 : 0);
+    title.position.set(width / 2, height / 2 + (isWin ? -2 : 6));
     layer.addChild(title);
     this.prizeTitle = title;
 
-    if (segment.prize.isWin) {
+    if (isWin) {
       const code = new Text({
         text: segment.prize.code,
-        style: {
-          fill: branding.secondaryColor,
-          fontSize: 15,
-          fontWeight: 'bold',
-          fontFamily,
-        },
+        style: { fill: onColor(segment.color), fontSize: small * 1.15, fontWeight: '800', letterSpacing: small * 0.18, fontFamily: 'ui-monospace, Menlo, monospace' },
       });
       code.anchor.set(0.5);
-      code.x = width / 2;
-      code.y = height / 2 + 22;
+      const cw = code.width + small * 2.2;
+      const ch = code.height + small * 0.9;
+      const cy = height / 2 + titleSize * 0.5 + ch * 0.8;
+      layer.addChild(new Graphics().roundRect(width / 2 - cw / 2, cy - ch / 2, cw, ch, ch / 2).fill(segment.color));
+      code.position.set(width / 2, cy);
       layer.addChild(code);
     }
 
-    void copy; // keep copy available for future prize microcopy
     return layer;
   }
 
   private buildCover(width: number, height: number): Sprite {
     this.coverTexture?.destroy(true);
 
-    const coverTexture = RenderTexture.create({ width, height });
+    // Match the canvas DPR so the foil and erase edges stay crisp on retina.
+    const coverTexture = RenderTexture.create({ width, height, resolution: this.app!.renderer.resolution });
     const { branding, copy } = this.options.config;
-    const coverArt = buildFoilCoverArt({
+    this.foil.paint(this.app!.renderer, coverTexture, {
       width,
       height,
       baseColor: branding.secondaryColor,
       accentColor: branding.primaryColor,
       cornerRadius: 16,
       hint: copy.scratchHint ?? 'SCRATCH TO REVEAL',
-      hintSize: Math.max(12, Math.min(width, height) * 0.045),
-      watermark: branding.centerLabel,
+      hintSize: Math.max(11, Math.min(width, height) * 0.055),
+      fontFamily: branding.fontFamily,
     });
-
-    this.app!.renderer.render({ container: coverArt, target: coverTexture, clear: true });
-    coverArt.destroy({ children: true });
 
     this.coverTexture = coverTexture;
     this.coverSprite = new Sprite(coverTexture);
-    this.coverSprite.alpha = 1;
     return this.coverSprite;
   }
 
@@ -405,19 +422,23 @@ export class ScratchEngine {
       alpha: 0,
       duration: 0.4,
       onComplete: () => {
-        this.options.onRevealEnd?.(this.segment);
+        // Let the revealed ticket be seen before the result modal covers it.
+        this.holdTimer = window.setTimeout(() => this.options.onRevealEnd?.(this.segment), REVEAL_HOLD_MS);
       },
     });
   }
 
   destroy(): void {
     this.destroyed = true;
+    if (this.holdTimer !== null) window.clearTimeout(this.holdTimer);
     this.sheenTween?.kill();
     gsap.killTweensOf(this.coverSprite);
     if (this.prizeTitle) gsap.killTweensOf(this.prizeTitle.scale);
     this.eraserRoot.destroy({ children: true });
     this.coverTexture?.destroy(true);
     this.app?.destroy(true, { children: true });
+    this.gradients.release();
+    this.foil.destroy();
     this.app = null;
     this.coverSprite = null;
     this.coverTexture = null;

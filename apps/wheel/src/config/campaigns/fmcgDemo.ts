@@ -8,7 +8,7 @@ const raw: z.input<typeof CampaignConfigSchema> = {
     primaryColor: '#ff7a1a',
     secondaryColor: '#141419',
     logoUrl: `${import.meta.env.BASE_URL}assets/fmcg/logo.svg`,
-    fontFamily: 'system-ui, sans-serif',
+    fontFamily: '"Bricolage Grotesque", system-ui, sans-serif',
     backgroundHint: '#1a1008',
   },
   wheel: {

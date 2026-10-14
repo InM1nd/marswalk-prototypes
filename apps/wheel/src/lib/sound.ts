@@ -26,28 +26,33 @@ export function isMuted(): boolean {
   return muted;
 }
 
-function beep(freq: number, duration: number, volume: number): void {
+/** Short enveloped tone — soft attack, exponential tail. Sine/triangle read as "chime", not "buzzer". */
+function tone(freq: number, duration: number, volume: number, type: OscillatorType = 'sine', delay = 0): void {
   if (muted || !unlocked) return;
   const ctx = Howler.ctx;
   if (!ctx) return;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.type = 'square';
+  osc.type = type;
   osc.frequency.value = freq;
-  gain.gain.value = volume;
   osc.connect(gain);
   gain.connect(ctx.destination);
-  const now = ctx.currentTime;
-  osc.start(now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-  osc.stop(now + duration);
+  const t = ctx.currentTime + delay;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(volume, t + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  osc.start(t);
+  osc.stop(t + duration + 0.02);
 }
 
 export function playTick(): void {
-  beep(920, 0.04, 0.06);
+  // Wooden-ish click: a high triangle blip plus a lower body.
+  tone(1800, 0.03, 0.05, 'triangle');
+  tone(420, 0.05, 0.05, 'sine');
 }
 
 export function playWin(): void {
-  beep(523, 0.08, 0.1);
-  window.setTimeout(() => beep(784, 0.12, 0.1), 90);
+  // C major arpeggio up to the octave, with a soft shimmer on top.
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.35, 0.12, 'triangle', i * 0.09));
+  tone(2093, 0.6, 0.03, 'sine', 0.36);
 }

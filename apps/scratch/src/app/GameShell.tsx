@@ -3,6 +3,7 @@ import { reducer, type AppAction, type AppState, type GameConfig } from './reduc
 import { ResultModal } from './ResultModal';
 import { LeadForm, type LeadFormValues } from './LeadForm';
 import { track } from '../lib/analytics';
+import { onColor } from '../lib/color';
 
 interface GameShellProps {
   config: GameConfig;
@@ -55,12 +56,12 @@ export function GameShell({ config, analyticsPrefix = 'scratch', onReset, childr
       className="app"
       style={{
         ['--brand-primary' as string]: config.branding.primaryColor,
+        ['--brand-on-primary' as string]: onColor(config.branding.primaryColor),
         ['--brand-secondary' as string]: config.branding.secondaryColor ?? '#141419',
         ['--brand-wash' as string]: wash,
-        fontFamily: config.branding.fontFamily,
+        ['--brand-font' as string]: config.branding.fontFamily,
       }}
     >
-      <a className="hub-link" href="/">← Hub</a>
       <header className="app__header">
         <h1 className="app__title">{config.copy.title}</h1>
         <p className="app__subtitle">{config.copy.subtitle}</p>
@@ -82,6 +83,7 @@ export function GameShell({ config, analyticsPrefix = 'scratch', onReset, childr
           <div className="modal" role="dialog" aria-modal="true">
             <LeadForm
               config={config}
+              segment={state.segment}
               submitting={state.status === 'submitting'}
               errorMessage={state.status === 'error' ? state.message : undefined}
               onSubmit={handleLeadSubmit}
@@ -93,6 +95,10 @@ export function GameShell({ config, analyticsPrefix = 'scratch', onReset, childr
       {state.status === 'submitted' && (
         <div className="modal-backdrop">
           <div className="modal" role="dialog" aria-modal="true">
+            <svg className="modal__check" viewBox="0 0 52 52" aria-hidden="true">
+              <circle cx="26" cy="26" r="24" />
+              <path d="M15 27l7 7 15-16" />
+            </svg>
             <h2 className="modal__title">{config.copy.successTitle ?? "You're all set"}</h2>
             <p className="modal__description">
               {fillTemplate(config.copy.successBody ?? 'Prize {code} logged for {email} — ready for CRM webhook.', {

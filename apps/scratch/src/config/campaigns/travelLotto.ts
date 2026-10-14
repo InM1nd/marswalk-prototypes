@@ -6,6 +6,7 @@ const raw: z.input<typeof LottoConfigSchema> = {
   branding: {
     centerLabel: 'TRIP',
     primaryColor: '#00b894',
+    fontFamily: 'Sora, system-ui, sans-serif',
     secondaryColor: '#0a1a18',
     backgroundHint: '#071412',
   },

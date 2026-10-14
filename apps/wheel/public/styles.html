@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prize Wheel · Style directions · marswalk</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Bungee&family=Inter:wght@500;600;700&family=Archivo+Black&family=Playfair+Display:ital,wght@0,600;1,600&family=Fredoka:wght@600;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root { --foreground: #f3f3f7; --background: #0a0a0f; --card: #141419; --border: rgba(255,255,255,.09); --muted: rgba(255,255,255,.08); --muted-foreground: #9a9aab; --radius: 16px; }
+  html, body { margin: 0; background: var(--background); color: var(--foreground); font-family: Inter, system-ui, sans-serif; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 64px; }
+  .page header { margin-bottom: 28px; }
+  .page header a { color: var(--muted-foreground); text-decoration: none; font-size: 13px; font-weight: 600; }
+  .page h1 { margin: 14px 0 6px; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; }
+  .page header p { margin: 0; max-width: 720px; color: var(--muted-foreground); line-height: 1.5; }
+  .page footer { margin-top: 28px; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card { border-radius: var(--radius, 14px); overflow: hidden; border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--card, transparent); display: flex; flex-direction: column; }
+  .stage { position: relative; height: 330px; display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  .stage svg { width: 230px; height: 230px; overflow: visible; }
+  .cta { margin-top: 10px; padding: 9px 26px; font-weight: 700; font-size: 14px; }
+  .stage-inner { display: flex; flex-direction: column; align-items: center; }
+  .stage h4 { margin: 0 0 8px; font-size: 17px; }
+  .meta { padding: 14px 16px 16px; font-size: 13px; line-height: 1.45; }
+  .meta h3 { margin: 0 0 2px; font-size: 15px; }
+  .tag { color: var(--muted-foreground, #999); margin: 0 0 8px; }
+  .row { margin: 4px 0; }
+  .row b { font-weight: 600; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--muted, rgba(255,255,255,.08)); margin-right: 4px; }
+  .num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--foreground, #eee); color: var(--background, #111); font-size: 11px; font-weight: 700; margin-right: 6px; vertical-align: 1px; }
+
+  /* Per-style stages */
+  .s-glossy { background: radial-gradient(ellipse 80% 60% at 50% 0%, #4a2208, transparent 70%), #0b0a0d; color: #fff; font-family: 'Bricolage Grotesque'; }
+  .s-glossy .cta { border-radius: 99px; background: linear-gradient(#ffb070, #ff7a1a 50%, #d65f0c); color: #140a02; box-shadow: 0 8px 22px -6px #ff7a1a, inset 0 1px 0 rgba(255,255,255,.5); font-family: inherit; }
+
+  .s-show { background: radial-gradient(circle at 50% 40%, #3b0a5c, #12021f 70%); color: #fff; font-family: Bungee; }
+  .s-show h4 { color: #ffe14d; text-shadow: 0 0 10px #ff2bd6, 0 0 2px #fff; letter-spacing: .02em; }
+  .s-show .cta { border-radius: 10px; background: #ffe14d; color: #3b0a5c; box-shadow: 0 4px 0 #b8860b, 0 0 24px #ffe14d88; font-family: Bungee; font-weight: 400; }
+
+  .s-min { background: #f4f1ec; color: #1b1b1f; font-family: Inter; }
+  .s-min h4 { font-weight: 600; letter-spacing: -.02em; }
+  .s-min .cta { border-radius: 10px; background: #1b1b1f; color: #fff; font-weight: 600; }
+
+  .s-brutal { background: #ffe94a; color: #000; font-family: 'Archivo Black'; }
+  .s-brutal h4 { text-transform: uppercase; font-size: 20px; }
+  .s-brutal .cta { border: 3px solid #000; background: #ff4f8b; color: #000; box-shadow: 5px 5px 0 #000; font-family: 'Archivo Black'; font-weight: 400; text-transform: uppercase; }
+
+  .s-luxe { background: radial-gradient(ellipse at 50% 30%, #13233f, #070d1a 75%); color: #f3e7c9; font-family: 'Playfair Display'; }
+  .s-luxe h4 { font-style: italic; font-weight: 600; font-size: 19px; }
+  .s-luxe .cta { border: 1px solid #c9a75c; background: transparent; color: #e9d29a; letter-spacing: .18em; font-size: 11px; text-transform: uppercase; font-family: Inter; font-weight: 600; }
+
+  .s-clay { background: linear-gradient(160deg, #ffd9e8, #d9e4ff); color: #3a2a5c; font-family: Fredoka; }
+  .s-clay .cta { border-radius: 99px; background: #8b6cff; color: #fff; box-shadow: 0 8px 0 #5a3fd1, 0 14px 24px -6px #8b6cff99, inset 0 3px 0 rgba(255,255,255,.35); font-family: Fredoka; }
+
+  .s-holo { background: #0c0c10; color: #fff; font-family: 'Space Grotesk'; }
+  .s-holo h4 { background: linear-gradient(90deg, #9cf, #f9c, #fe9, #9fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .s-holo .cta { border-radius: 99px; background: linear-gradient(90deg, #a6e3ff, #ffb6e6, #fff3a6, #b6ffd9); color: #111; font-family: inherit; box-shadow: 0 0 24px rgba(255,182,230,.35); }
+
+  .s-pick { background: linear-gradient(180deg, #e8402b, #c9301e); color: #fff; font-family: 'Bricolage Grotesque'; }
+  .s-pick .cta { border-radius: 99px; background: #fff; color: #c9301e; font-family: inherit; box-shadow: 0 6px 16px -4px rgba(0,0,0,.35); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <a href="./">← Back to the live Prize Wheel</a>
+    <h1>Prize Wheel — style directions</h1>
+    <p>Eight visual directions for the same wheel. Mechanics, prize logic, lead capture and analytics stay identical — only the skin changes, driven by the campaign config. One engine, any brand look.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>Static concept sketches (SVG) for choosing a direction — the live demo animates, plays sound and runs the full win → lead-form flow. Fonts: Google Fonts.</footer>
+</div>
+<script>
+const LABELS = ['10% OFF', 'Try again', 'Free ship', '20% OFF', 'Try again', 'BIG PRIZE'];
+const TAU = Math.PI * 2;
+const pt = (r, a) => [Math.cos(a) * r, Math.sin(a) * r];
+function slice(r, a0, a1, r0 = 0) {
+  const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1), large = a1 - a0 > Math.PI ? 1 : 0;
+  if (!r0) return `M0 0 L${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
+  const [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
+  return `M${x3} ${y3} L${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} L${x2} ${y2} A${r0} ${r0} 0 ${large} 0 ${x3} ${y3} Z`;
+}
+// opts: colors[], text[], r, gap, r0, font, size, weight, labelR, stroke, strokeW, upper
+function segments(o) {
+  const n = LABELS.length, seg = TAU / n; let s = '';
+  LABELS.forEach((label, i) => {
+    let a0 = -Math.PI / 2 + i * seg, a1 = a0 + seg;
+    const g = o.gap || 0;
+    s += `<path d="${slice(o.r, a0 + g, a1 - g, o.r0)}" fill="${o.colors[i % o.colors.length]}" ${o.stroke ? `stroke="${o.stroke}" stroke-width="${o.strokeW}" stroke-linejoin="round"` : ''} ${o.segAttr ? o.segAttr(i) : ''}/>`;
+    const mid = a0 + seg / 2, deg = mid * 180 / Math.PI;
+    const [lx, ly] = pt(o.r * (o.labelR || 0.88), mid);
+    const t = o.upper ? label.toUpperCase() : label;
+    s += `<text x="${lx}" y="${ly}" transform="rotate(${deg} ${lx} ${ly})" text-anchor="end" dominant-baseline="central" font-family="${o.font}" font-size="${o.size}" font-weight="${o.weight || 700}" fill="${o.text[i % o.text.length]}" ${o.textAttr || ''}>${t}</text>`;
+  });
+  return s;
+}
+function bulbs(r, n, size, on, off, glow) {
+  let s = '';
+  for (let i = 0; i < n; i++) { const a = i / n * TAU + TAU / n / 2; const [x, y] = pt(r, a); const lit = i % 2 === 0; s += `<circle cx="${x}" cy="${y}" r="${size}" fill="${lit ? on : off}" ${lit && glow ? `filter="url(#${glow})"` : ''}/>`; }
+  return s;
+}
+const svg = (inner, defs = '') => `<svg viewBox="-125 -125 250 250"><defs>${defs}</defs>${inner}</svg>`;
+
+const STYLES = [
+  {
+    cls: 's-glossy', title: 'Premium Glossy', note: 'live now',
+    head: 'Spin to win', cta: 'Spin the wheel',
+    tag: 'Depth, highlights, metallic rim, marquee bulbs. A high-end promo widget.',
+    fit: ['FMCG', 'Retail', 'Travel'], pros: 'versatile — “wow” without feeling cheap', cons: 'dark look can clash with light client sites', effort: 'done',
+    svg: () => {
+      const C = ['#ff7a1a', '#22222c', '#ff9a3d', '#2c2c38', '#22222c', '#ffb020'];
+      const defs = `<radialGradient id="g1sh"><stop offset=".8" stop-color="#000" stop-opacity=".5"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <linearGradient id="g1rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc89a"/><stop offset=".5" stop-color="#ff7a1a"/><stop offset="1" stop-color="#8a3c06"/></linearGradient>
+        <linearGradient id="g1gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <filter id="g1b"><feGaussianBlur stdDeviation="2"/></filter>`;
+      return svg(`<circle r="122" cy="6" fill="url(#g1sh)"/><circle r="122" fill="#ff7a1a" opacity=".18" filter="url(#g1b)"/>
+        ${segments({ colors: C, text: ['#140a02', '#fff', '#140a02', '#fff', '#fff', '#140a02'], r: 100, font: 'Bricolage Grotesque', size: 12, weight: 800 })}
+        <circle r="100" fill="url(#g1gl)"/><circle r="108" fill="none" stroke="url(#g1rim)" stroke-width="16"/>
+        ${bulbs(108, 20, 2.6, '#fffbe8', '#7a4a20', 'g1b')}${bulbs(108, 20, 2.2, '#fff', 'none')}
+        <circle r="24" fill="url(#g1rim)"/><circle r="19" fill="#151519"/><text text-anchor="middle" dominant-baseline="central" font-family="Bricolage Grotesque" font-weight="800" font-size="12" fill="#ff7a1a">GO</text>
+        <path d="M0 -96 C-6 -104 -12 -110 -12 -118 A12 12 0 0 1 12 -118 C12 -110 6 -104 0 -96Z" fill="url(#g1rim)" stroke="#fff" stroke-opacity=".6"/><circle cy="-118" r="4" fill="#fff"/>`, defs);
+    },
+  },
+  {
+    cls: 's-show', title: 'Game Show / Neon', head: 'SPIN & WIN!', cta: 'SPIN!',
+    tag: 'TV game show meets arcade: neon, chasing lights, loud type.',
+    fit: ['FMCG', 'Energy/Gaming', 'Events'], pros: 'maximum excitement and shareability on TikTok', cons: 'wrong fit for banks and premium brands', effort: 'medium: glow + light animation',
+    svg: () => {
+      const C = ['#ff2bd6', '#1b0631', '#20e3ff', '#1b0631', '#ffe14d', '#1b0631'];
+      const defs = `<filter id="g2n" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+      return svg(`<circle r="116" fill="#2a0845" stroke="#ff2bd6" stroke-width="3" filter="url(#g2n)"/>
+        ${bulbs(108, 28, 3.2, '#ffe14d', '#5a3a00', 'g2n')}
+        <circle r="99" fill="none" stroke="#20e3ff" stroke-width="2" filter="url(#g2n)"/>
+        ${segments({ colors: C, text: ['#1b0631', '#20e3ff', '#1b0631', '#ff2bd6', '#1b0631', '#ffe14d'], r: 96, font: 'Bungee', size: 11, weight: 400, stroke: '#ffe14d', strokeW: 1.5 })}
+        <circle r="22" fill="#ffe14d" filter="url(#g2n)"/><text text-anchor="middle" dominant-baseline="central" font-family="Bungee" font-size="10" fill="#3b0a5c">SPIN</text>
+        <path d="M-13 -124 L13 -124 L0 -96 Z" fill="#ffe14d" stroke="#fff" stroke-width="1.5" filter="url(#g2n)"/>`, defs);
+    },
+  },
+  {
+    cls: 's-min', title: 'Clean Minimal', head: 'Spin for a reward', cta: 'Spin',
+    tag: 'Flat, light, hairlines, lots of air. Feels like product UI.',
+    fit: ['Banking', 'SaaS', 'Mobility'], pros: 'builds trust, drops into any client site', cons: 'low emotion, weaker on social', effort: 'low',
+    svg: () => {
+      const C = ['#1b1b1f', '#ebe6dd', '#c9c2b5', '#ebe6dd', '#ffffff', '#ff5a36'];
+      return svg(`<circle r="112" fill="#fff" stroke="#e1dbd0"/>
+        ${segments({ colors: C, text: ['#fff', '#8a8478', '#1b1b1f', '#8a8478', '#8a8478', '#fff'], r: 104, gap: .012, r0: 30, font: 'Inter', size: 10.5, weight: 600, labelR: .9 })}
+        <circle r="24" fill="#fff" stroke="#e1dbd0"/><circle r="4" fill="#1b1b1f"/>
+        <path d="M0 -100 L-7 -114 L7 -114 Z" fill="#1b1b1f"/>`);
+    },
+  },
+  {
+    cls: 's-brutal', title: 'Neo-Brutal / Sticker', head: 'Spin it!', cta: 'Spin now',
+    tag: 'Thick black outlines, flat acid colors, hard offset shadows.',
+    fit: ['FMCG', 'Gen Z', 'Fashion'], pros: 'native to TikTok/IG — bold and fresh', cons: 'risky for conservative brands', effort: 'low',
+    svg: () => {
+      const C = ['#ff4f8b', '#ffffff', '#4fd1ff', '#7cff6b', '#ffffff', '#b28cff'];
+      const wheel = segments({ colors: C, text: ['#000'], r: 104, font: 'Archivo Black', size: 11, weight: 400, stroke: '#000', strokeW: 3, upper: true });
+      return svg(`<g transform="translate(7 7)"><circle r="108" fill="#000"/></g>
+        <circle r="108" fill="#fff" stroke="#000" stroke-width="4"/>${wheel}<circle r="104" fill="none" stroke="#000" stroke-width="4"/>
+        <g transform="translate(3 3)"><circle r="22" fill="#000"/></g><circle r="22" fill="#ffe94a" stroke="#000" stroke-width="3"/><text text-anchor="middle" dominant-baseline="central" font-family="Archivo Black" font-size="11">GO</text>
+        <g transform="translate(3 3)"><path d="M-14 -124 L14 -124 L0 -94 Z" fill="#000"/></g><path d="M-14 -124 L14 -124 L0 -94 Z" fill="#ff4f8b" stroke="#000" stroke-width="3" stroke-linejoin="round"/>`);
+    },
+  },
+  {
+    cls: 's-luxe', title: 'Luxe / Gold', head: 'Your exclusive reward', cta: 'Reveal reward',
+    tag: 'Navy and gold, fine lines, serif type. Private-banking feel.',
+    fit: ['Banking', 'Premium travel', 'Beauty'], pros: 'solid and premium, stands apart from generic wheels', cons: 'restrained, less thrill', effort: 'low–medium',
+    svg: () => {
+      const C = ['#0d1a33', '#f3ead6', '#0d1a33', '#f3ead6', '#0d1a33', '#f3ead6'];
+      const defs = `<linearGradient id="g5g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e3a8"/><stop offset=".5" stop-color="#c9a75c"/><stop offset="1" stop-color="#8a6a2a"/></linearGradient>`;
+      let ticks = ''; for (let i = 0; i < 60; i++) { const a = i / 60 * TAU, [x0, y0] = pt(108, a), [x1, y1] = pt(i % 5 ? 111 : 114, a); ticks += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#c9a75c" stroke-width="${i % 5 ? .6 : 1.2}"/>`; }
+      return svg(`<circle r="116" fill="none" stroke="url(#g5g)" stroke-width="1"/>${ticks}<circle r="104" fill="none" stroke="url(#g5g)" stroke-width="3"/>
+        ${segments({ colors: C, text: ['#e9d29a', '#0d1a33'], r: 102, font: 'Playfair Display', size: 11.5, weight: 600, stroke: '#c9a75c', strokeW: .8, textAttr: 'font-style="italic"' })}
+        <circle r="26" fill="#0d1a33" stroke="url(#g5g)" stroke-width="2"/><text text-anchor="middle" dominant-baseline="central" font-family="Playfair Display" font-style="italic" font-size="15" fill="#e9d29a">B</text>
+        <path d="M0 -94 L-8 -118 L0 -124 L8 -118 Z" fill="url(#g5g)"/>`, defs);
+    },
+  },
+  {
+    cls: 's-clay', title: 'Soft 3D / Clay', head: 'Spin & get a treat', cta: 'Spin!',
+    tag: 'Puffy pastel “clay” segments, soft shadows, toy-like.',
+    fit: ['FMCG', 'Kids/Family', 'Food'], pros: 'friendly, on-trend 3D look, broad appeal', cons: 'can read as childish', effort: 'medium: shadows and volume',
+    svg: () => {
+      const C = ['#ff9ec4', '#fff4c2', '#9ed8ff', '#c7b3ff', '#fff4c2', '#9effc9'];
+      const defs = `<filter id="g6s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#5a3fd1" flood-opacity=".3"/></filter>
+        <radialGradient id="g6h" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/></radialGradient>`;
+      return svg(`<circle r="114" fill="#fff" filter="url(#g6s)"/><circle r="114" fill="url(#g6h)"/>
+        ${segments({ colors: C, text: ['#3a2a5c'], r: 102, gap: .03, r0: 28, font: 'Fredoka', size: 12, weight: 700, segAttr: () => 'stroke="#fff" stroke-width="6" stroke-linejoin="round" paint-order="stroke"' })}
+        <circle r="102" fill="url(#g6h)" opacity=".7"/>
+        <circle r="24" fill="#8b6cff" filter="url(#g6s)"/><circle r="24" fill="url(#g6h)"/><text text-anchor="middle" dominant-baseline="central" font-family="Fredoka" font-weight="700" font-size="12" fill="#fff">GO</text>
+        <path d="M0 -94 C-10 -104 -14 -110 -14 -116 A14 14 0 0 1 14 -116 C14 -110 10 -104 0 -94Z" fill="#8b6cff" filter="url(#g6s)"/><circle cx="-4" cy="-119" r="4" fill="#fff" opacity=".6"/>`, defs);
+    },
+  },
+  {
+    cls: 's-holo', title: 'Holo / Y2K Chrome', head: 'spin the vibe', cta: 'spin',
+    tag: 'Holographic shimmer, chrome rim, dark backdrop.',
+    fit: ['Beauty', 'Fashion', 'Music/Tech'], pros: 'very social, trend-forward, great on video', cons: 'trendy — dates quickly, not for every brand', effort: 'medium',
+    svg: () => {
+      const defs = `<linearGradient id="g7c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#9aa0aa"/><stop offset=".5" stop-color="#fff"/><stop offset=".75" stop-color="#5d626b"/><stop offset="1" stop-color="#d9dce2"/></linearGradient>
+        ${['#a6e3ff,#d7b6ff', '#1a1a22,#2a2a36', '#ffb6e6,#fff3a6', '#b6ffd9,#a6e3ff', '#1a1a22,#2a2a36', '#fff3a6,#ffb6e6'].map((c, i) => { const [a, b] = c.split(','); return `<linearGradient id="g7s${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`; }).join('')}`;
+      return svg(`<circle r="114" fill="none" stroke="url(#g7c)" stroke-width="12"/>
+        ${segments({ colors: [0, 1, 2, 3, 4, 5].map(i => `url(#g7s${i})`), text: ['#15151c', '#e9e9f2', '#15151c', '#15151c', '#e9e9f2', '#15151c'], r: 108, font: 'Space Grotesk', size: 12, weight: 700, stroke: 'rgba(255,255,255,.5)', strokeW: 1 })}
+        <circle r="24" fill="url(#g7c)"/><circle r="17" fill="#0c0c10"/><circle r="6" fill="url(#g7s2)"/>
+        <path d="M0 -96 L-10 -124 L10 -124 Z" fill="url(#g7c)" stroke="#fff" stroke-width=".8"/>`, defs);
+    },
+  },
+  {
+    cls: 's-pick', title: 'Brand-native (client guidelines)', head: 'Dein Gewinn wartet', cta: 'Jetzt drehen',
+    tag: 'Background and CTA taken 1:1 from the client guidelines; near-white wheel.',
+    fit: ['Any brand', 'Retail sites'], pros: 'looks native to the client site, easiest sign-off', cons: 'no agency signature look', effort: 'low',
+    svg: () => {
+      const C = ['#ffffff', '#fbe3df', '#ffffff', '#fbe3df', '#ffffff', '#ffd23f'];
+      const defs = `<filter id="g8s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".3"/></filter>`;
+      return svg(`<circle r="112" fill="#fff" filter="url(#g8s)"/>
+        ${segments({ colors: C, text: ['#c9301e'], r: 104, font: 'Bricolage Grotesque', size: 12, weight: 800, stroke: '#f2c4bd', strokeW: 1 })}
+        <circle r="104" fill="none" stroke="#c9301e" stroke-width="4"/>
+        <circle r="24" fill="#c9301e"/><text text-anchor="middle" dominant-baseline="central" font-family="Bricolage Grotesque" font-weight="800" font-size="10" fill="#fff">LOGO</text>
+        <path d="M-12 -122 L12 -122 L0 -98 Z" fill="#fff" stroke="#c9301e" stroke-width="3" stroke-linejoin="round"/>`, defs);
+    },
+  },
+];
+
+document.getElementById('grid').innerHTML = STYLES.map((s, i) => `
+  <div class="card">
+    <div class="stage ${s.cls}"><div class="stage-inner"><h4>${s.head}</h4>${s.svg()}<button class="cta">${s.cta}</button></div></div>
+    <div class="meta">
+      <h3><span class="num">${i + 1}</span>${s.title}${s.note ? ` <span class="pill">${s.note}</span>` : ''}</h3>
+      <p class="tag">${s.tag}</p>
+      <div class="row">${s.fit.map(f => `<span class="pill">${f}</span>`).join('')}</div>
+      <div class="row"><b>+</b> ${s.pros}</div>
+      <div class="row"><b>−</b> ${s.cons}</div>
+      <div class="row"><b>Effort:</b> ${s.effort}</div>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

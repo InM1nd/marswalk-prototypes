@@ -1,5 +1,5 @@
 // Backlog of potential engagement mini-games for campaigns & events.
-// English copy — used by the hub "Ideas" tab. Not playable demos yet.
+// English copy — used by the hub "Ideas" tab. Entries with a `url` are already live demos.
 
 window.GAME_IDEAS = [
   {
@@ -16,7 +16,8 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'medium',
     recommended: true,
-    image: 'ideas/idea-catch-drop.webp',
+    image: 'ideas/marswalk/idea-catch-drop.webp',
+    url: '/catch/',
   },
   {
     id: 'stack-clash',
@@ -32,7 +33,7 @@ window.GAME_IDEAS = [
     effort: 'medium',
     wow: 'high',
     recommended: true,
-    image: 'ideas/idea-stack-clash.webp',
+    image: 'ideas/marswalk/idea-stack-clash.webp',
   },
   {
     id: 'perfect-pour',
@@ -48,7 +49,7 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'medium',
     recommended: true,
-    image: 'ideas/idea-perfect-pour.webp',
+    image: 'ideas/marswalk/idea-perfect-pour.webp',
   },
   {
     id: 'aim-fling',
@@ -64,7 +65,7 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'medium',
     recommended: true,
-    image: 'ideas/idea-aim-fling.webp',
+    image: 'ideas/marswalk/idea-aim-fling.webp',
   },
   {
     id: 'rhythm-tap',
@@ -80,7 +81,7 @@ window.GAME_IDEAS = [
     effort: 'medium',
     wow: 'high',
     recommended: false,
-    image: 'ideas/idea-rhythm-tap.webp',
+    image: 'ideas/marswalk/idea-rhythm-tap.webp',
   },
   {
     id: 'merge-lite',
@@ -96,7 +97,7 @@ window.GAME_IDEAS = [
     effort: 'medium',
     wow: 'medium',
     recommended: false,
-    image: 'ideas/idea-merge-lite.webp',
+    image: 'ideas/marswalk/idea-merge-lite.webp',
   },
   {
     id: 'pass-phone',
@@ -112,7 +113,7 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'high',
     recommended: false,
-    image: 'ideas/idea-pass-phone.webp',
+    image: 'ideas/marswalk/idea-pass-phone.webp',
   },
   {
     id: 'cam-booth',
@@ -128,7 +129,7 @@ window.GAME_IDEAS = [
     effort: 'medium',
     wow: 'high',
     recommended: false,
-    image: 'ideas/idea-cam-booth.webp',
+    image: 'ideas/marswalk/idea-cam-booth.webp',
   },
   {
     id: 'shake-reveal',
@@ -144,7 +145,7 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'medium',
     recommended: false,
-    image: 'ideas/idea-shake-reveal.webp',
+    image: 'ideas/marswalk/idea-shake-reveal.webp',
   },
   {
     id: 'one-screen-puzzle',
@@ -160,7 +161,7 @@ window.GAME_IDEAS = [
     effort: 'low',
     wow: 'medium',
     recommended: false,
-    image: 'ideas/idea-one-screen-puzzle.webp',
+    image: 'ideas/marswalk/idea-one-screen-puzzle.webp',
   },
   {
     id: 'crowd-meter',
@@ -176,7 +177,7 @@ window.GAME_IDEAS = [
     effort: 'medium',
     wow: 'high',
     recommended: false,
-    image: 'ideas/idea-crowd-meter.webp',
+    image: 'ideas/marswalk/idea-crowd-meter.webp',
   },
 ];
 
@@ -193,5 +194,5 @@ window.GAME_IDEAS_META = {
     { label: 'Premium 3D', items: 'Configurator, Quiz result' },
     { label: 'Event hardware', items: 'Shake, Crowd meter, Kiosk mode' },
   ],
-  note: 'Plinko shipped as a live prototype. Recommended cards are the fastest next demos on our current stack.',
+  note: 'Plinko and Catch the Drop have already shipped as live prototypes. Recommended cards are the fastest next demos on our current stack.',
 };

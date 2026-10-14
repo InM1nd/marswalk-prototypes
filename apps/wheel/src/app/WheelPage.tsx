@@ -68,7 +68,9 @@ export default function WheelPage() {
 
         return (
           <>
-            <div className="chrome-row">
+            <nav className="demo-bar" aria-label="Demo controls">
+              <a className="demo-bar__hub" href="/">← Hub</a>
+              <span className="demo-bar__tag">Demo</span>
               <div className="preset-switcher" role="group" aria-label="Campaign vertical">
                 {CAMPAIGN_PRESETS.map((preset) => (
                   <button
@@ -83,38 +85,53 @@ export default function WheelPage() {
                   </button>
                 ))}
               </div>
+              {blocked && state.status === 'idle' && (
+                <button
+                  type="button"
+                  className="demo-bar__chip demo-bar__chip--warn"
+                  onClick={resetSession}
+                  title="Demo limit: 1 spin / 24h on this device (prototype anti-replay). Click to reset the demo session."
+                >
+                  1 spin used · Reset
+                </button>
+              )}
               {soundEnabled && (
                 <button
                   type="button"
-                  className="mute-toggle"
+                  className="demo-bar__chip"
                   onClick={() => {
                     const next = !muted;
                     setMuted(next);
                     setMutedState(next);
                   }}
-                  aria-label={muted ? 'Unmute' : 'Mute'}
+                  aria-pressed={!muted}
                 >
                   {muted ? 'Sound off' : 'Sound on'}
                 </button>
               )}
-            </div>
+              <button
+                type="button"
+                className={`demo-bar__chip${panelOpen ? ' is-active' : ''}`}
+                onClick={() => setPanelOpen((o) => !o)}
+                aria-expanded={panelOpen}
+              >
+                ⚙ Customize
+              </button>
+              <a className="demo-bar__chip" href={`${import.meta.env.BASE_URL}styles.html`}>
+                Styles
+              </a>
+            </nav>
 
-            {blocked && state.status === 'idle' && (
-              <div className="session-banner" role="status">
-                <span>
-                  Demo limit: 1 spin / 24h on this device (prototype anti-replay).
-                </span>
-                <button type="button" className="session-banner__reset" onClick={resetSession}>
-                  Reset demo session
-                </button>
-              </div>
-            )}
-
-            <button type="button" className="config-toggle" onClick={() => setPanelOpen((o) => !o)}>
-              {panelOpen ? 'Hide customization ▲' : '⚙ Customize this wheel ▼'}
-            </button>
             {panelOpen && (
-              <ConfigPanel config={config} onChange={setConfig} disabled={state.status !== 'idle'} />
+              <aside className="config-drawer" aria-label="Customize this wheel">
+                <div className="config-drawer__head">
+                  <h2>Customize this wheel</h2>
+                  <button type="button" className="config-drawer__close" onClick={() => setPanelOpen(false)} aria-label="Close">
+                    ✕
+                  </button>
+                </div>
+                <ConfigPanel config={config} onChange={setConfig} disabled={state.status !== 'idle'} />
+              </aside>
             )}
 
             <WheelCanvas

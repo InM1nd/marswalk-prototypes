@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
-// MVP scope only (see prototype-2-runner.md §6): runner mode, one obstacle
-// type, one coin type, flat-color branding (no sprite atlas — draws
-// PIXI.Graphics shapes so a new client needs zero art pipeline, just colors).
-// Matching mode and multi-obstacle types are deferred.
+// Runner mode, two obstacle types, one coin type. All art is generated from the
+// brand colours (see engine/art.ts), so a new client needs zero art pipeline.
 export const RunnerConfigSchema = z.object({
   campaignId: z.string(),
   branding: z.object({
     primaryColor: z.string(),
     secondaryColor: z.string(),
     bgColor: z.string(),
+    fontFamily: z.string().default('Bricolage Grotesque'),
+    brandName: z.string(),
   }),
   physics: z.object({
     gravity: z.number().default(1.2),
@@ -19,16 +19,31 @@ export const RunnerConfigSchema = z.object({
   }),
   round: z.object({
     durationSeconds: z.number().default(45),
-    obstacleIntervalMs: z.object({ min: z.number(), max: z.number() }).default({ min: 900, max: 1800 }),
-    coinIntervalMs: z.object({ min: z.number(), max: z.number() }).default({ min: 600, max: 1200 }),
+  }),
+  /** In-world billboard: the offer stays on screen for the whole run. */
+  billboard: z.object({ headline: z.string(), offer: z.string(), footnote: z.string() }),
+  /** Reaching `threshold` points unlocks the prize; game over then leads to the lead form. */
+  prize: z.object({
+    threshold: z.number(),
+    label: z.string(),
+    title: z.string(),
+    description: z.string(),
+    code: z.string(),
   }),
   copy: z.object({
+    eyebrow: z.string(),
     title: z.string(),
     subtitle: z.string(),
-    startButtonLabel: z.string().default('Играть'),
-    gameOverTitle: z.string(),
-    retryButtonLabel: z.string().default('Ещё раз'),
+    startButtonLabel: z.string().default('Play'),
+    winTitle: z.string(),
+    loseTitle: z.string(),
+    retryButtonLabel: z.string().default('Play again'),
+    claimButtonLabel: z.string().default('Claim it'),
+    leadFormTitle: z.string(),
+    leadFormSubmitLabel: z.string(),
+    consentText: z.string(),
   }),
+  leadForm: z.object({ webhookUrl: z.string().optional() }),
 });
 
 export type RunnerConfig = z.infer<typeof RunnerConfigSchema>;

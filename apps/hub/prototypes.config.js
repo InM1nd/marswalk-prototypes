@@ -4,6 +4,7 @@
 //
 // status: 'planned' | 'in_progress' | 'live'
 //   'live' — card is clickable, links to url
+// image: screenshot of the live demo (previews/), shown on the card
 //   otherwise — card is disabled, shows status badge
 //
 // Relative urls work with the monorepo Vercel rewrites (vercel.ts).
@@ -11,6 +12,7 @@
 window.PROTOTYPES = [
   {
     id: 'wheel',
+    image: 'previews/wheel.webp',
     accent: '#ff7a1a',
     icon: '🎡',
     title: 'Prize Wheel',
@@ -22,6 +24,7 @@ window.PROTOTYPES = [
   },
   {
     id: 'scratch',
+    image: 'previews/scratch.webp',
     accent: '#ff6a3d',
     icon: '🧧',
     title: 'Scratch Card',
@@ -33,6 +36,7 @@ window.PROTOTYPES = [
   },
   {
     id: 'lotto',
+    image: 'previews/lotto.webp',
     accent: '#ff8a1f',
     icon: '🎰',
     title: 'Scratch Lotto',
@@ -44,6 +48,7 @@ window.PROTOTYPES = [
   },
   {
     id: 'runner',
+    image: 'previews/runner.webp',
     accent: '#ff9a3d',
     icon: '🏃',
     title: 'Mini Runner',
@@ -55,6 +60,7 @@ window.PROTOTYPES = [
   },
   {
     id: 'plinko',
+    image: 'previews/plinko.webp',
     accent: '#ff5a36',
     icon: '🎱',
     title: '3D Plinko',
@@ -63,6 +69,18 @@ window.PROTOTYPES = [
     stack: ['three.js', 'R3F', 'Rapier', 'React'],
     status: 'live',
     url: '/plinko/',
+  },
+  {
+    id: 'catch',
+    image: 'previews/catch.webp',
+    accent: '#ff7a1a',
+    icon: '🌧️',
+    title: 'Catch the Drop',
+    subtitle: 'Promo rain',
+    description: 'Drag the branded bag, catch the good drops, dodge the bad — 20-second rounds with a score → prize path.',
+    stack: ['pixi.js', 'zustand', 'React'],
+    status: 'live',
+    url: '/catch/',
   },
   {
     id: 'configurator',

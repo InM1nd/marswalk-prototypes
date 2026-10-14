@@ -8,7 +8,7 @@ const raw: z.input<typeof CampaignConfigSchema> = {
     primaryColor: '#00b894',
     secondaryColor: '#0a1a18',
     logoUrl: `${import.meta.env.BASE_URL}assets/travel/logo.svg`,
-    fontFamily: 'system-ui, sans-serif',
+    fontFamily: 'Sora, system-ui, sans-serif',
     backgroundHint: '#071412',
   },
   prizes: {

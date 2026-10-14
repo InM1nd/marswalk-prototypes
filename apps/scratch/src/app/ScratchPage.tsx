@@ -5,6 +5,7 @@ import type { CampaignConfig, PrizeSlot } from '../config/schema';
 import { ScratchCanvas } from './ScratchCanvas';
 import { GameShell } from './GameShell';
 import { ConfigPanel } from './ConfigPanel';
+import { DemoBar } from './DemoBar';
 import { track } from '../lib/analytics';
 import { clearScratched, hasScratched, markScratched } from '../lib/session';
 import { isMuted, playGrit, setMuted, unlockAudio } from '../lib/sound';
@@ -79,57 +80,49 @@ export default function ScratchPage() {
 
         return (
           <>
-            <div className="chrome-row">
-              <div className="preset-switcher" role="group" aria-label="Campaign vertical">
-                {CAMPAIGN_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className={`preset-switcher__btn${presetId === preset.id ? ' is-active' : ''}`}
-                    disabled={presetsLocked}
-                    onClick={() => selectPreset(preset.id)}
-                    title={preset.vertical}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-              {soundEnabled && (
-                <button
-                  type="button"
-                  className="mute-toggle"
-                  onClick={() => {
-                    const next = !muted;
-                    setMuted(next);
-                    setMutedState(next);
-                  }}
-                >
-                  {muted ? 'Sound off' : 'Sound on'}
-                </button>
-              )}
-            </div>
+            <DemoBar
+              mode="card"
+              presets={CAMPAIGN_PRESETS.map((p) => ({ id: p.id, label: p.label, title: p.vertical }))}
+              activePresetId={presetId}
+              onSelectPreset={(id) => selectPreset(id as CampaignPresetId)}
+              presetsLocked={presetsLocked}
+              blocked={blocked && state.status === 'idle'}
+              onResetSession={() => {
+                clearScratched(config.campaignId);
+                setBlocked(false);
+              }}
+              sound={
+                soundEnabled
+                  ? {
+                      muted,
+                      onToggle: () => {
+                        setMuted(!muted);
+                        setMutedState(!muted);
+                      },
+                    }
+                  : undefined
+              }
+            >
+              <button
+                type="button"
+                className={`demo-bar__chip${panelOpen ? ' is-active' : ''}`}
+                onClick={() => setPanelOpen((o) => !o)}
+                aria-expanded={panelOpen}
+              >
+                ⚙ Customize
+              </button>
+            </DemoBar>
 
-            {blocked && state.status === 'idle' && (
-              <div className="session-banner" role="status">
-                <span>Demo limit: 1 play / 24h on this device (prototype anti-replay).</span>
-                <button
-                  type="button"
-                  className="session-banner__reset"
-                  onClick={() => {
-                    clearScratched(config.campaignId);
-                    setBlocked(false);
-                  }}
-                >
-                  Reset demo session
-                </button>
-              </div>
-            )}
-
-            <button type="button" className="config-toggle" onClick={() => setPanelOpen((o) => !o)}>
-              {panelOpen ? 'Hide customization ▲' : '⚙ Customize this card ▼'}
-            </button>
             {panelOpen && (
-              <ConfigPanel config={config} onChange={setConfig} disabled={state.status !== 'idle'} />
+              <aside className="config-drawer" aria-label="Customize this card">
+                <div className="config-drawer__head">
+                  <h2>Customize this card</h2>
+                  <button type="button" className="config-drawer__close" onClick={() => setPanelOpen(false)} aria-label="Close">
+                    ✕
+                  </button>
+                </div>
+                <ConfigPanel config={config} onChange={setConfig} disabled={state.status !== 'idle'} />
+              </aside>
             )}
 
             <div className={`scratch-frame${blocked && state.status === 'idle' ? ' scratch-frame--blocked' : ''}`}>
@@ -147,8 +140,8 @@ export default function ScratchPage() {
               {!engineReady
                 ? 'Loading…'
                 : blocked && state.status === 'idle'
-                  ? 'Already played — reset session to try again'
-                  : 'Drag to scratch the card'}
+                  ? 'Already played — reset the demo session to play again'
+                  : 'Drag your finger or mouse across the foil'}
             </p>
           </>
         );

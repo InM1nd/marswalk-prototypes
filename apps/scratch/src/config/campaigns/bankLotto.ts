@@ -6,6 +6,7 @@ const raw: z.input<typeof LottoConfigSchema> = {
   branding: {
     centerLabel: 'BANK',
     primaryColor: '#1a6bff',
+    fontFamily: 'Manrope, system-ui, sans-serif',
     secondaryColor: '#0c1220',
     backgroundHint: '#080e1a',
   },

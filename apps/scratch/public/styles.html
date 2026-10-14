@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scratch Card · Style directions · marswalk</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Bungee&family=Inter:wght@500;600;700&family=Archivo+Black&family=Playfair+Display:ital,wght@0,600;1,600&family=Fredoka:wght@600;700&family=Space+Grotesk:wght@700&family=Courier+Prime:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root { --foreground: #f3f3f7; --background: #0a0a0f; --card: #141419; --border: rgba(255,255,255,.09); --muted: rgba(255,255,255,.08); --muted-foreground: #9a9aab; --radius: 16px; }
+  html, body { margin: 0; background: var(--background); color: var(--foreground); font-family: Inter, system-ui, sans-serif; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 40px 24px 64px; }
+  .page header { margin-bottom: 28px; }
+  .page header a { color: var(--muted-foreground); text-decoration: none; font-size: 13px; font-weight: 600; }
+  .page h1 { margin: 14px 0 6px; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; }
+  .page header p { margin: 0; max-width: 720px; color: var(--muted-foreground); line-height: 1.5; }
+  .page footer { margin-top: 28px; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; max-width: 720px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; }
+  .stage { height: 300px; display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  .stage-inner { display: flex; flex-direction: column; align-items: center; }
+  .stage h4 { margin: 0 0 12px; font-size: 17px; }
+  .stage svg { width: 270px; height: auto; overflow: visible; }
+  .stage .hint { margin-top: 12px; font-size: 11px; opacity: .7; }
+  .meta { padding: 14px 16px 16px; font-size: 13px; line-height: 1.45; }
+  .meta h3 { margin: 0 0 2px; font-size: 15px; }
+  .tag { color: var(--muted-foreground); margin: 0 0 8px; }
+  .row { margin: 4px 0; }
+  .row b { font-weight: 600; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--muted); margin-right: 4px; }
+  .num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--foreground); color: var(--background); font-size: 11px; font-weight: 700; margin-right: 6px; vertical-align: 1px; }
+
+  .s-glossy { background: radial-gradient(ellipse 80% 60% at 50% 0%, #4a2208, transparent 70%), #0b0a0d; color: #fff; font-family: 'Bricolage Grotesque'; }
+  .s-show { background: radial-gradient(circle at 50% 40%, #3b0a5c, #12021f 70%); color: #ffe14d; font-family: Bungee; }
+  .s-show h4 { text-shadow: 0 0 10px #ff2bd6, 0 0 2px #fff; }
+  .s-min { background: #f4f1ec; color: #1b1b1f; font-family: Inter; }
+  .s-min h4 { font-weight: 600; letter-spacing: -.02em; }
+  .s-brutal { background: #ffe94a; color: #000; font-family: 'Archivo Black'; }
+  .s-brutal h4 { text-transform: uppercase; font-size: 20px; }
+  .s-luxe { background: radial-gradient(ellipse at 50% 30%, #13233f, #070d1a 75%); color: #e9d29a; font-family: 'Playfair Display'; }
+  .s-luxe h4 { font-style: italic; font-size: 19px; }
+  .s-clay { background: linear-gradient(160deg, #ffd9e8, #d9e4ff); color: #3a2a5c; font-family: Fredoka; }
+  .s-holo { background: #0c0c10; color: #fff; font-family: 'Space Grotesk'; }
+  .s-holo h4 { background: linear-gradient(90deg, #9cf, #f9c, #fe9, #9fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .s-retro { background: #2b5f5a; color: #fbf3df; font-family: 'Courier Prime', monospace; }
+  .s-retro h4 { letter-spacing: .08em; text-transform: uppercase; font-size: 15px; }
+  .s-brand { background: linear-gradient(180deg, #e8402b, #c9301e); color: #fff; font-family: 'Bricolage Grotesque'; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <a href="./">← Back to the live Scratch Card</a>
+    <h1>Scratch Card — style directions</h1>
+    <p>Nine visual directions for the same scratch mechanic. Each sketch is shown half-scratched: foil on top, prize underneath. Scratch detection, prize odds, lead capture and analytics stay identical — only the skin changes, driven by the campaign config. One engine, any brand look.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>Static concept sketches (SVG) for choosing a direction — the live demo has real scratch-to-reveal with foil particles, sound and the full win → lead-form flow. Fonts: Google Fonts.</footer>
+</div>
+<script>
+// Card area is 0..300 × 0..190. The mask path is the same "scratch stroke" for every style.
+// Three wavy passes over the middle band, stopping short on the right so some foil stays.
+const SCRATCH = 'M24 62 C90 50 170 74 246 58 M18 96 C100 84 180 108 258 92 M26 128 C100 142 170 118 236 134';
+let uid = 0;
+function card(o) {
+  const id = 'c' + uid++;
+  return `<svg viewBox="-14 -14 328 218">
+    <defs>${o.defs || ''}
+      <mask id="${id}m" maskUnits="userSpaceOnUse" x="-20" y="-20" width="340" height="230">
+        <rect x="-20" y="-20" width="340" height="230" fill="#fff"/>
+        <path d="${SCRATCH}" fill="none" stroke="#000" stroke-width="${o.brush || 40}" stroke-linecap="round" stroke-linejoin="round"/>
+      </mask>
+    </defs>
+    ${o.under || ''}
+    <g>${o.prize}</g>
+    <g mask="url(#${id}m)">${o.foil}</g>
+    ${o.over || ''}
+  </svg>`;
+}
+const dots = (fill, step, r, w = 300, h = 190, rx = 0) => {
+  let s = '';
+  for (let y = step / 2, row = 0; y < h; y += step * 0.7, row++) for (let x = row % 2 ? step : step / 2; x < w; x += step) s += `<circle cx="${x}" cy="${y}" r="${r}"/>`;
+  return `<g fill="${fill}">${s}</g>`;
+};
+const text = (x, y, t, attrs) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" ${attrs}>${t}</text>`;
+
+const STYLES = [
+  {
+    cls: 's-glossy', title: 'Premium Glossy', note: 'live now', head: 'Scratch to win', hint: 'Drag across the foil',
+    tag: 'Brushed brand-tinted metal, embossed pattern, glowing prize ticket in a metallic frame.',
+    fit: ['FMCG', 'Retail', 'Travel'], pros: 'versatile, feels premium on any vertical', cons: 'dark look can clash with light client sites', effort: 'done',
+    svg: () => card({
+      defs: `<linearGradient id="g1f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb994"/><stop offset=".45" stop-color="#ff6a3d"/><stop offset="1" stop-color="#8f300f"/></linearGradient>
+        <linearGradient id="g1m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f0ee"/><stop offset=".5" stop-color="#cdc3c4"/><stop offset="1" stop-color="#8e8790"/></linearGradient>
+        <radialGradient id="g1g" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="#ff6a3d" stop-opacity=".6"/><stop offset="1" stop-color="#ff6a3d" stop-opacity="0"/></radialGradient>
+        <linearGradient id="g1s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <filter id="g1glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`,
+      under: `<rect x="-12" y="-12" width="324" height="214" rx="24" fill="url(#g1f)"/>`,
+      prize: `<rect width="300" height="190" rx="16" fill="#100c0c"/><rect width="300" height="190" rx="16" fill="url(#g1g)"/>
+        ${[1, 2, 3, 4, 5].map((i) => `<circle cx="150" cy="104" r="${i * 22}" fill="none" stroke="#fff" stroke-opacity=".06"/>`).join('')}
+        ${text(36, 22, 'GO', 'font-family="Bricolage Grotesque" font-weight="800" font-size="11" fill="#ff6a3d" letter-spacing="2"')}
+        ${text(150, 92, '10% OFF', 'font-family="Bricolage Grotesque" font-weight="800" font-size="38" fill="#fff" filter="url(#g1glow)"')}
+        <rect x="112" y="122" width="76" height="22" rx="11" fill="#ff6a3d"/>${text(150, 133, 'SAVE10', 'font-family="ui-monospace,Menlo" font-weight="800" font-size="11" fill="#140a02" letter-spacing="2"')}`,
+      foil: `<rect width="300" height="190" rx="16" fill="url(#g1m)"/>${dots('#fff', 18, 1.6).replace('<g', '<g opacity=".5"')}
+        <path d="M40 0 H120 L60 190 H-20Z" fill="url(#g1s)"/><path d="M190 0 H230 L170 190 H130Z" fill="url(#g1s)" opacity=".7"/>
+        <rect x="76" y="82" width="148" height="26" rx="13" fill="#1a1416" stroke="#ff6a3d"/>${text(150, 95, 'SCRATCH TO REVEAL', 'font-family="Bricolage Grotesque" font-weight="800" font-size="10.5" fill="#fff" letter-spacing="1.6"')}`,
+    }),
+  },
+  {
+    cls: 's-show', title: 'Game Show / Neon', head: 'INSTANT WIN!', hint: 'SCRATCH THE STAR',
+    tag: 'Arcade jackpot ticket: neon frame, chasing bulbs, starburst foil, loud display type.',
+    fit: ['FMCG', 'Energy/Gaming', 'Events'], pros: 'maximum thrill and shareability on TikTok', cons: 'wrong fit for banks and premium brands', effort: 'medium: glow + bulb animation',
+    svg: () => card({
+      defs: `<filter id="g2n" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id="g2f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe14d"/><stop offset=".5" stop-color="#ff9a1f"/><stop offset="1" stop-color="#ff2bd6"/></linearGradient>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" rx="18" fill="#2a0845" stroke="#ff2bd6" stroke-width="3" filter="url(#g2n)"/>
+        ${Array.from({ length: 22 }, (_, i) => { const t = i / 22; const p = t < .5 ? [-2 + t * 2 * 304, -2] : [-2 + (t - .5) * 2 * 304, 192]; return `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="${i % 2 ? '#5a3a00' : '#ffe14d'}" ${i % 2 ? '' : 'filter="url(#g2n)"'}/>`; }).join('')}`,
+      prize: `<rect width="300" height="190" rx="12" fill="#1b0631"/>
+        ${text(150, 80, 'JACKPOT', 'font-family="Bungee" font-size="34" fill="#ffe14d" filter="url(#g2n)"')}
+        ${text(150, 122, '€50 VOUCHER', 'font-family="Bungee" font-size="14" fill="#20e3ff"')}`,
+      foil: `<rect width="300" height="190" rx="12" fill="url(#g2f)"/>
+        ${Array.from({ length: 16 }, (_, i) => { const a = i / 16 * Math.PI * 2; return `<line x1="150" y1="95" x2="${150 + Math.cos(a) * 260}" y2="${95 + Math.sin(a) * 260}" stroke="#fff" stroke-opacity=".18" stroke-width="10"/>`; }).join('')}
+        <path d="M150 52 l12 26 28 3 -21 19 6 28 -25 -14 -25 14 6 -28 -21 -19 28 -3z" fill="#fff" stroke="#3b0a5c" stroke-width="3"/>
+        ${text(150, 96, 'SCRATCH', 'font-family="Bungee" font-size="9" fill="#3b0a5c"')}`,
+    }),
+  },
+  {
+    cls: 's-min', title: 'Clean Minimal', head: 'Reveal your reward', hint: 'Scratch the grey area',
+    tag: 'Flat warm-grey latex, hairline frame, lots of air. Reads like product UI.',
+    fit: ['Banking', 'SaaS', 'Mobility'], pros: 'builds trust, drops into any client site', cons: 'low emotion, weaker on social', effort: 'low',
+    svg: () => card({
+      defs: `<pattern id="g3p" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-opacity=".35"/></pattern>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" rx="18" fill="#fff" stroke="#e1dbd0"/>`,
+      prize: `<rect width="300" height="190" rx="12" fill="#faf8f4"/>
+        ${text(150, 82, '€10 cashback', 'font-family="Inter" font-weight="600" font-size="30" fill="#1b1b1f" letter-spacing="-1"')}
+        ${text(150, 120, 'CODE  CASH10', 'font-family="ui-monospace,Menlo" font-size="11" fill="#8a8478" letter-spacing="2"')}`,
+      foil: `<rect width="300" height="190" rx="12" fill="#d8d2c7"/><rect width="300" height="190" rx="12" fill="url(#g3p)"/>
+        ${text(150, 95, 'Scratch to reveal', 'font-family="Inter" font-weight="600" font-size="12" fill="#6b665d"')}`,
+    }),
+  },
+  {
+    cls: 's-brutal', title: 'Neo-Brutal / Sticker', head: 'Scratch it!', hint: 'GO ON, SCRATCH',
+    tag: 'Thick black outlines, flat acid colors, halftone foil, hard offset shadows.',
+    fit: ['FMCG', 'Gen Z', 'Fashion'], pros: 'native to TikTok/IG — bold and fresh', cons: 'risky for conservative brands', effort: 'low',
+    svg: () => card({
+      under: `<rect x="-2" y="-2" width="312" height="202" rx="14" fill="#000"/><rect x="-8" y="-8" width="312" height="202" rx="14" fill="#fff" stroke="#000" stroke-width="4"/>`,
+      prize: `<rect width="296" height="186" rx="8" fill="#ff4f8b"/>
+        ${text(148, 82, 'FREE SHIP', 'font-family="Archivo Black" font-size="34" fill="#000"')}
+        <rect x="104" y="112" width="88" height="24" fill="#ffe94a" stroke="#000" stroke-width="3"/>${text(148, 124, 'FREESHIP', 'font-family="Archivo Black" font-size="11" fill="#000"')}`,
+      foil: `<rect width="296" height="186" rx="8" fill="#4fd1ff" stroke="#000" stroke-width="3"/>${dots('#000', 12, 2.2, 296, 186).replace('<g', '<g opacity=".28"')}
+        <g transform="rotate(-6 150 95)"><rect x="92" y="78" width="116" height="34" fill="#fff" stroke="#000" stroke-width="3"/>${text(150, 95, 'SCRATCH ME', 'font-family="Archivo Black" font-size="13" fill="#000"')}</g>`,
+      over: `<rect x="0" y="0" width="296" height="186" rx="8" fill="none" stroke="#000" stroke-width="3"/>`,
+    }),
+  },
+  {
+    cls: 's-luxe', title: 'Luxe / Gold', head: 'An exclusive reward awaits', hint: 'Reveal gently',
+    tag: 'Black card with gold-leaf foil, fine engraving, serif type. Private-banking feel.',
+    fit: ['Banking', 'Premium travel', 'Beauty'], pros: 'solid and premium, stands apart from generic scratch cards', cons: 'restrained, less thrill', effort: 'low–medium',
+    svg: () => card({
+      defs: `<linearGradient id="g5g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e3a8"/><stop offset=".35" stop-color="#c9a75c"/><stop offset=".6" stop-color="#f3dc9a"/><stop offset="1" stop-color="#8a6a2a"/></linearGradient>
+        <pattern id="g5p" width="4" height="4" patternUnits="userSpaceOnUse"><line x1="0" y1="2" x2="4" y2="2" stroke="#fff" stroke-opacity=".18"/></pattern>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" rx="16" fill="#060a14" stroke="url(#g5g)" stroke-width="1.5"/>`,
+      prize: `<rect width="300" height="190" rx="10" fill="#0d1a33"/><rect x="8" y="8" width="284" height="174" rx="6" fill="none" stroke="#c9a75c" stroke-opacity=".5"/>
+        ${text(150, 78, 'Premium year', 'font-family="Playfair Display" font-style="italic" font-weight="600" font-size="30" fill="#e9d29a"')}
+        ${text(150, 116, 'PREM · 12', 'font-family="Inter" font-weight="600" font-size="10" fill="#c9a75c" letter-spacing="4"')}`,
+      foil: `<rect width="300" height="190" rx="10" fill="url(#g5g)"/><rect width="300" height="190" rx="10" fill="url(#g5p)"/>
+        <rect x="8" y="8" width="284" height="174" rx="6" fill="none" stroke="#6b5220" stroke-opacity=".5"/>
+        ${text(150, 88, 'Reveal', 'font-family="Playfair Display" font-style="italic" font-weight="600" font-size="22" fill="#3d2d0c"')}
+        ${text(150, 112, 'YOUR REWARD', 'font-family="Inter" font-weight="600" font-size="8" fill="#3d2d0c" letter-spacing="4"')}`,
+    }),
+  },
+  {
+    cls: 's-clay', title: 'Soft 3D / Clay', head: 'Scratch for a treat', hint: 'scratch me!',
+    tag: 'Puffy pastel card, confetti foil, soft shadows. Friendly, toy-like.',
+    fit: ['FMCG', 'Kids/Family', 'Food'], pros: 'friendly, on-trend 3D look, broad appeal', cons: 'can read as childish', effort: 'medium: shadows and volume',
+    svg: () => card({
+      defs: `<filter id="g6s" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#5a3fd1" flood-opacity=".3"/></filter>
+        <linearGradient id="g6f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc2dc"/><stop offset="1" stop-color="#ff9ec4"/></linearGradient>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" rx="30" fill="#fff" filter="url(#g6s)"/>`,
+      prize: `<rect width="300" height="190" rx="24" fill="#e9e1ff"/>
+        ${text(150, 82, 'Free donut 🍩', 'font-family="Fredoka" font-weight="700" font-size="30" fill="#3a2a5c"')}
+        <rect x="108" y="112" width="84" height="26" rx="13" fill="#8b6cff"/>${text(150, 125, 'YUMMY1', 'font-family="Fredoka" font-weight="700" font-size="12" fill="#fff"')}`,
+      foil: `<rect width="300" height="190" rx="24" fill="url(#g6f)"/>
+        ${Array.from({ length: 40 }, (_, i) => `<rect x="${(i * 71) % 290}" y="${(i * 37) % 180}" width="8" height="3" rx="1.5" fill="${['#fff4c2', '#9ed8ff', '#c7b3ff', '#9effc9'][i % 4]}" transform="rotate(${(i * 47) % 180} ${(i * 71) % 290} ${(i * 37) % 180})"/>`).join('')}
+        <rect x="100" y="80" width="100" height="30" rx="15" fill="#fff"/>${text(150, 95, 'scratch me!', 'font-family="Fredoka" font-weight="700" font-size="13" fill="#ff5a9e"')}
+        <ellipse cx="80" cy="30" rx="50" ry="10" fill="#fff" opacity=".35"/>`,
+    }),
+  },
+  {
+    cls: 's-holo', title: 'Holo / Y2K Chrome', head: 'unlock the drop', hint: 'scratch the shimmer',
+    tag: 'Holographic foil that shifts color, chrome frame, sparkles. Made for video.',
+    fit: ['Beauty', 'Fashion', 'Music/Tech'], pros: 'very social, trend-forward, a natural fit for foil', cons: 'trendy — dates quickly, not for every brand', effort: 'medium',
+    svg: () => card({
+      defs: `<linearGradient id="g7c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#9aa0aa"/><stop offset=".5" stop-color="#fff"/><stop offset=".75" stop-color="#5d626b"/><stop offset="1" stop-color="#d9dce2"/></linearGradient>
+        <linearGradient id="g7h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a6e3ff"/><stop offset=".25" stop-color="#ffb6e6"/><stop offset=".5" stop-color="#fff3a6"/><stop offset=".75" stop-color="#b6ffd9"/><stop offset="1" stop-color="#d7b6ff"/></linearGradient>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" rx="22" fill="url(#g7c)"/>`,
+      prize: `<rect width="300" height="190" rx="14" fill="#0c0c10"/>
+        ${text(150, 82, '−25% drop', 'font-family="Space Grotesk" font-weight="700" font-size="34" fill="#fff"')}
+        ${text(150, 118, 'code: GLOW25', 'font-family="Space Grotesk" font-weight="700" font-size="12" fill="#ffb6e6"')}`,
+      foil: `<rect width="300" height="190" rx="14" fill="url(#g7h)"/>
+        ${Array.from({ length: 14 }, (_, i) => { const x = (i * 83) % 290 + 5, y = (i * 53) % 180 + 5; return `<path d="M${x} ${y - 5} L${x + 1.2} ${y - 1.2} ${x + 5} ${y} ${x + 1.2} ${y + 1.2} ${x} ${y + 5} ${x - 1.2} ${y + 1.2} ${x - 5} ${y} ${x - 1.2} ${y - 1.2}Z" fill="#fff"/>`; }).join('')}
+        ${text(150, 95, 'scratch ✦', 'font-family="Space Grotesk" font-weight="700" font-size="15" fill="#15151c"')}`,
+    }),
+  },
+  {
+    cls: 's-retro', title: 'Retro Lottery Ticket', note: 'scratch-only', head: 'Instant win · Nº 0427', hint: 'Scratch here with a coin',
+    tag: 'Printed paper ticket: perforated edges, serial number, ink stamp, classic silver latex.',
+    fit: ['FMCG', 'Food & drink', 'Local retail'], pros: 'instantly recognisable, nostalgic, “real” feel', cons: 'busy; harder to brand for tech/finance', effort: 'medium: print details',
+    svg: () => card({
+      defs: `<pattern id="g8d" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="2.6" fill="#8d9199" opacity=".35"/></pattern>
+        <linearGradient id="g8m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9dbe0"/><stop offset=".5" stop-color="#aeb2ba"/><stop offset="1" stop-color="#c8cbd2"/></linearGradient>`,
+      under: `<rect x="-10" y="-10" width="320" height="210" fill="#fbf3df"/>
+        ${Array.from({ length: 23 }, (_, i) => `<circle cx="${-10 + i * 14.5}" cy="-10" r="4" fill="#2b5f5a"/><circle cx="${-10 + i * 14.5}" cy="200" r="4" fill="#2b5f5a"/>`).join('')}
+        <rect x="-4" y="-4" width="308" height="198" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4 3"/>`,
+      prize: `<rect width="300" height="190" fill="#fffaf0"/>
+        ${text(150, 34, '★ INSTANT WIN ★', 'font-family="Courier Prime" font-weight="700" font-size="12" fill="#c0392b" letter-spacing="2"')}
+        ${text(150, 90, 'WIN 2 FREE', 'font-family="Archivo Black" font-size="28" fill="#1d3f8a"')}
+        ${text(150, 120, 'COLA · CODE COLA2', 'font-family="Courier Prime" font-weight="700" font-size="11" fill="#1d3f8a"')}
+        <g transform="rotate(-14 238 150)"><circle cx="238" cy="150" r="26" fill="none" stroke="#c0392b" stroke-width="2.5"/>${text(238, 150, 'WIN', 'font-family="Archivo Black" font-size="12" fill="#c0392b"')}</g>`,
+      foil: `<rect x="20" y="50" width="260" height="110" rx="4" fill="url(#g8m)"/><rect x="20" y="50" width="260" height="110" rx="4" fill="url(#g8d)"/>
+        ${text(150, 105, 'SCRATCH HERE', 'font-family="Courier Prime" font-weight="700" font-size="14" fill="#555a63" letter-spacing="3"')}`,
+    }),
+  },
+  {
+    cls: 's-brand', title: 'Brand-native (client guidelines)', head: 'Rubbeln & gewinnen', hint: 'Mit dem Finger rubbeln',
+    tag: 'Foil in the client’s brand color with a logo pattern; card sits on the client’s own page.',
+    fit: ['Any brand', 'Retail sites'], pros: 'looks native to the client site, easiest sign-off', cons: 'no agency signature look', effort: 'low',
+    svg: () => card({
+      defs: `<filter id="g9s" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".3"/></filter>
+        <linearGradient id="g9f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6b57"/><stop offset="1" stop-color="#b8261a"/></linearGradient>`,
+      under: `<rect x="-8" y="-8" width="316" height="206" rx="18" fill="#fff" filter="url(#g9s)"/>`,
+      prize: `<rect width="300" height="190" rx="12" fill="#fff"/>
+        ${text(150, 82, '20% Rabatt', 'font-family="Bricolage Grotesque" font-weight="800" font-size="32" fill="#c9301e"')}
+        ${text(150, 118, 'Code: SAVE20', 'font-family="Bricolage Grotesque" font-weight="800" font-size="12" fill="#1b1b1f"')}`,
+      foil: `<rect width="300" height="190" rx="12" fill="url(#g9f)"/>
+        <g fill="#fff" opacity=".12" font-family="Bricolage Grotesque" font-weight="800" font-size="12">${Array.from({ length: 30 }, (_, i) => `<text x="${(i % 6) * 54 + (Math.floor(i / 6) % 2) * 27}" y="${Math.floor(i / 6) * 40 + 18}">LOGO</text>`).join('')}</g>
+        <rect x="104" y="80" width="92" height="30" rx="15" fill="#fff"/>${text(150, 95, 'Rubbeln', 'font-family="Bricolage Grotesque" font-weight="800" font-size="13" fill="#c9301e"')}`,
+    }),
+  },
+];
+
+document.getElementById('grid').innerHTML = STYLES.map((s, i) => `
+  <div class="card">
+    <div class="stage ${s.cls}"><div class="stage-inner"><h4>${s.head}</h4>${s.svg()}<div class="hint">${s.hint}</div></div></div>
+    <div class="meta">
+      <h3><span class="num">${i + 1}</span>${s.title}${s.note ? ` <span class="pill">${s.note}</span>` : ''}</h3>
+      <p class="tag">${s.tag}</p>
+      <div class="row">${s.fit.map((f) => `<span class="pill">${f}</span>`).join('')}</div>
+      <div class="row"><b>+</b> ${s.pros}</div>
+      <div class="row"><b>−</b> ${s.cons}</div>
+      <div class="row"><b>Effort:</b> ${s.effort}</div>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { LOTTO_PRESETS, lottoPresetById, type LottoPresetId } from '../config/ca
 import type { LottoConfig } from '../config/lottoSchema';
 import { resolveLottoGrid, type LottoResult } from '../lib/lottoResolver';
 import { LottoCanvas } from './LottoCanvas';
+import { DemoBar } from './DemoBar';
 import { GameShell } from './GameShell';
 import type { ResolvedPrize } from './reducer';
 import { clearScratched, hasScratched, markScratched } from '../lib/session';
@@ -18,6 +19,8 @@ function initial(): { id: LottoPresetId; config: LottoConfig } {
 function toResolvedPrize(result: LottoResult, config: LottoConfig): ResolvedPrize {
   if (result.isWin && result.symbol) {
     return {
+      label: `${result.symbol.icon} ×3`,
+      color: config.branding.primaryColor,
       prize: { code: result.symbol.prize.code, description: result.symbol.prize.description, isWin: true },
     };
   }
@@ -62,50 +65,29 @@ export default function LottoPage() {
 
         return (
           <>
-            <div className="chrome-row">
-              <div className="preset-switcher" role="group" aria-label="Campaign vertical">
-                {LOTTO_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className={`preset-switcher__btn${presetId === preset.id ? ' is-active' : ''}`}
-                    disabled={presetsLocked}
-                    onClick={() => selectPreset(preset.id)}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-              {soundEnabled && (
-                <button
-                  type="button"
-                  className="mute-toggle"
-                  onClick={() => {
-                    const next = !muted;
-                    setMuted(next);
-                    setMutedState(next);
-                  }}
-                >
-                  {muted ? 'Sound off' : 'Sound on'}
-                </button>
-              )}
-            </div>
-
-            {blocked && state.status === 'idle' && (
-              <div className="session-banner" role="status">
-                <span>Demo limit: 1 play / 24h on this device.</span>
-                <button
-                  type="button"
-                  className="session-banner__reset"
-                  onClick={() => {
-                    clearScratched(config.campaignId);
-                    setBlocked(false);
-                  }}
-                >
-                  Reset demo session
-                </button>
-              </div>
-            )}
+            <DemoBar
+              mode="lotto"
+              presets={LOTTO_PRESETS.map((p) => ({ id: p.id, label: p.label }))}
+              activePresetId={presetId}
+              onSelectPreset={(id) => selectPreset(id as LottoPresetId)}
+              presetsLocked={presetsLocked}
+              blocked={blocked && state.status === 'idle'}
+              onResetSession={() => {
+                clearScratched(config.campaignId);
+                setBlocked(false);
+              }}
+              sound={
+                soundEnabled
+                  ? {
+                      muted,
+                      onToggle: () => {
+                        setMuted(!muted);
+                        setMutedState(!muted);
+                      },
+                    }
+                  : undefined
+              }
+            />
 
             <div className={`scratch-frame${blocked && state.status === 'idle' ? ' scratch-frame--blocked' : ''}`}>
               <LottoCanvas
@@ -129,8 +111,8 @@ export default function LottoPage() {
               {!engineReady
                 ? 'Loading…'
                 : blocked && state.status === 'idle'
-                  ? 'Already played — reset session to try again'
-                  : 'Drag to scratch each tile'}
+                  ? 'Already played — reset the demo session to play again'
+                  : 'Scratch all 9 tiles — 3 matching symbols win'}
             </p>
           </>
         );

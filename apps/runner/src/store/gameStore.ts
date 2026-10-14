@@ -9,6 +9,8 @@ export interface GameStore {
   combo: number;
   timeLeft: number;
   muted: boolean;
+  prizeUnlocked: boolean;
+  unlockPrize: () => void;
   addScore: (points: number) => void;
   bumpCombo: () => number;
   resetCombo: () => void;
@@ -24,6 +26,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   combo: 0,
   timeLeft: 0,
   muted: false,
+  prizeUnlocked: false,
+  unlockPrize: () => set({ prizeUnlocked: true }),
   addScore: (points) => set((s) => ({ score: s.score + points })),
   bumpCombo: () => {
     const combo = get().combo + 1;
@@ -36,9 +40,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setStatus: (status) => set({ status }),
   toggleMuted: () => set((s) => ({ muted: !s.muted })),
   reset: (durationSeconds) =>
-    set({ status: 'idle', score: 0, combo: 0, timeLeft: durationSeconds }),
+    set({ status: 'idle', score: 0, combo: 0, timeLeft: durationSeconds, prizeUnlocked: false }),
 }));
 
 export function comboMultiplier(combo: number): number {
-  return 1 + Math.floor(Math.max(0, combo - 1) / 3);
+  return Math.min(5, 1 + Math.floor(Math.max(0, combo - 1) / 3));
 }

@@ -14,7 +14,6 @@ function newSegment(): WheelSegment {
     id: `s${Date.now()}`,
     label: 'New prize',
     color: '#2a2a36',
-    textColor: '#FFFFFF',
     weight: 10,
     prize: { code: 'CODE', description: 'Description', isWin: true },
   };
@@ -221,7 +220,7 @@ export function ConfigPanel({ config, onChange, disabled }: ConfigPanelProps) {
             </button>
           </div>
         ))}
-        <button type="button" className="btn config-panel__add" onClick={addSegment} disabled={config.wheel.segments.length >= MAX_SEGMENTS}>
+        <button type="button" className="btn btn--ghost config-panel__add" onClick={addSegment} disabled={config.wheel.segments.length >= MAX_SEGMENTS}>
           + Add segment
         </button>
       </section>

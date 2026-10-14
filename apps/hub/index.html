@@ -3,399 +3,417 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Marswalk Prototypes — Interactive Ad Tools</title>
-  <meta name="description" content="Interactive web ad tool prototypes for marswalk.media" />
+  <title>marswalk · Playable ad formats</title>
+  <meta name="description" content="Interactive game formats for brand campaigns, built in-house by marswalk.media" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="glow" aria-hidden="true"></div>
-
   <header class="header">
-    <div class="header__brand">
-      <span class="header__mark">MW</span>
-      <span class="header__name">marswalk<span class="header__dim">.prototypes</span></span>
-    </div>
-    <span class="header__badge">demo suite</span>
+    <a class="header__brand" href="https://marswalk.media" target="_blank" rel="noopener" aria-label="marswalk.media">
+      <span class="wordmark">MARSWALK<i>•</i></span>
+      <span class="header__product">Playable</span>
+    </a>
+    <nav class="tabs" role="tablist" aria-label="Hub sections">
+      <button type="button" class="tabs__btn is-active" role="tab" id="tab-prototypes" aria-selected="true" aria-controls="panel-prototypes" data-tab="prototypes">Prototypes</button>
+      <button type="button" class="tabs__btn" role="tab" id="tab-ideas" aria-selected="false" aria-controls="panel-ideas" data-tab="ideas">Ideas</button>
+      <button type="button" class="tabs__btn" role="tab" id="tab-metrics" aria-selected="false" aria-controls="panel-metrics" data-tab="metrics">Metrics &amp; Data</button>
+    </nav>
+    <a class="header__cta" href="https://marswalk.media" target="_blank" rel="noopener">marswalk.media <span aria-hidden="true">↗</span></a>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Hub sections">
-    <button type="button" class="tabs__btn is-active" role="tab" id="tab-prototypes" aria-selected="true" aria-controls="panel-prototypes" data-tab="prototypes">
-      Prototypes
-    </button>
-    <button type="button" class="tabs__btn" role="tab" id="tab-ideas" aria-selected="false" aria-controls="panel-ideas" data-tab="ideas">
-      Mini-game ideas
-    </button>
-    <button type="button" class="tabs__btn" role="tab" id="tab-metrics" aria-selected="false" aria-controls="panel-metrics" data-tab="metrics">
-      Metrics & Data
-    </button>
-  </nav>
-
   <div id="panel-prototypes" class="panel" role="tabpanel" aria-labelledby="tab-prototypes">
-    <main class="hero">
-      <p class="hero__eyebrow">Interactive Ad Tools — Pitch Suite</p>
-      <h1 class="hero__title">Five live formats,<br />one ad engine</h1>
-      <p class="hero__subtitle">
-        Game mechanics for performance and brand campaigns in the DACH market:
-        FMCG, banking, travel, mobility. Two more formats planned.
-      </p>
+    <main class="hero hero--split">
+      <div class="hero__copy">
+        <p class="eyebrow">Interactive formats · demo suite</p>
+        <h1 class="display">Playable ads<br />that convert<b>.</b></h1>
+        <p class="hero__subtitle">
+          Six live game formats on one engine. Each is rebranded per client in days and
+          built for TikTok, campaign landing pages and trade booths in DACH.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#formats">Open the demos <span aria-hidden="true">↓</span></a>
+          <button type="button" class="btn btn--ghost" data-tab="metrics">See the data <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+      <div class="hero__phones" aria-hidden="true">
+        <img src="previews/runner.webp" alt="" />
+        <img src="previews/wheel.webp" alt="" />
+        <img src="previews/catch.webp" alt="" />
+      </div>
     </main>
 
-    <section class="pitch" aria-label="Why this suite">
-      <p class="pitch__thesis">
-        One engine — config + assets per client. Not a rewrite from scratch every time.
-      </p>
-      <div class="pitch__grid">
-        <article class="pitch__card">
-          <h2 class="pitch__label">Leadgen / promo</h2>
-          <p class="pitch__name">Wheel · Scratch · Lotto · Plinko</p>
-          <p class="pitch__meta">Live · clear ROI · promo code → lead form</p>
+    <section class="stats" aria-label="At a glance">
+      <div class="stat"><p class="stat__value">6</p><p class="stat__label">live game formats, ready to demo</p></div>
+      <div class="stat"><p class="stat__value">≈2×</p><p class="stat__label">sign-up conversion vs a plain form, across 3 benchmarks</p></div>
+      <div class="stat"><p class="stat__value">1</p><p class="stat__label">engine: brand, prizes and copy are config</p></div>
+      <div class="stat"><p class="stat__value">Days</p><p class="stat__label">to reskin a format for a new client</p></div>
+    </section>
+
+    <section class="section" id="formats" aria-labelledby="formats-title">
+      <div class="section__head">
+        <p class="eyebrow">Prototypes</p>
+        <h2 class="headline" id="formats-title">Live formats<b>.</b></h2>
+      </div>
+      <div class="grid grid--protos" id="grid"></div>
+    </section>
+
+    <section class="section" aria-labelledby="jobs-title">
+      <div class="section__head">
+        <p class="eyebrow">Positioning</p>
+        <h2 class="headline" id="jobs-title">Three jobs, one engine<b>.</b></h2>
+      </div>
+      <div class="jobs">
+        <article class="job">
+          <p class="job__label">Lead gen / promo</p>
+          <h3>Wheel · Scratch · Lotto · Plinko</h3>
+          <p>The prize moment doubles as the opt-in. A promo code leads into the lead form, so the ROI is easy to show.</p>
+          <span class="job__status">Live</span>
         </article>
-        <article class="pitch__card">
-          <h2 class="pitch__label">Engagement</h2>
-          <p class="pitch__name">Mini Runner</p>
-          <p class="pitch__meta">Live · awareness / viral loop</p>
+        <article class="job">
+          <p class="job__label">Engagement</p>
+          <h3>Runner · Catch the Drop</h3>
+          <p>Skill rounds of 20–45 seconds with a score-to-prize path. Built for replays, booths and thumb traffic.</p>
+          <span class="job__status">Live</span>
         </article>
-        <article class="pitch__card pitch__card--planned">
-          <h2 class="pitch__label">Brand / TOF</h2>
-          <p class="pitch__name">3D Configurator · Quiz</p>
-          <p class="pitch__meta">Planned · premium wow formats</p>
+        <article class="job job--planned">
+          <p class="job__label">Brand / top of funnel</p>
+          <h3>3D Configurator · Quiz</h3>
+          <p>Premium formats that set us apart. This is where the market is thinnest.</p>
+          <span class="job__status">Planned</span>
         </article>
       </div>
     </section>
-
-    <section class="grid" id="grid" aria-label="Prototypes"></section>
   </div>
 
   <div id="panel-ideas" class="panel panel--hidden" role="tabpanel" aria-labelledby="tab-ideas" hidden>
     <main class="hero" id="ideas-hero"></main>
-    <section class="spectrum" id="ideas-spectrum" aria-label="Capability spectrum"></section>
-    <section class="grid" id="ideas-grid" aria-label="Potential mini-games"></section>
+    <section class="section" aria-labelledby="nova-concepts-title">
+      <div class="section__head">
+        <p class="eyebrow">Concept previews</p>
+        <h2 class="headline" id="nova-concepts-title">Mini-game concepts<b>.</b></h2>
+        <p>Campaign formats by marswalk, shown with a fictional client brand. Select a preview to open the full-size image.</p>
+      </div>
+      <div class="nova-concepts">
+        <a class="nova-concepts__item" href="ideas/nova/01-brand-slots.png" target="_blank" rel="noopener"><img src="ideas/nova/01-brand-slots.png" alt="Brand Slots: three matching gift boxes on a slot machine" width="1024" height="1536" loading="lazy" decoding="async" /><span>Brand Slots</span></a>
+        <a class="nova-concepts__item" href="ideas/nova/02-mystery-box.png" target="_blank" rel="noopener"><img src="ideas/nova/02-mystery-box.png" alt="Mystery Box: an opening gift box reveals a 30% OFF ticket" width="1024" height="1536" loading="lazy" decoding="async" /><span>Mystery Box</span></a>
+        <a class="nova-concepts__item" href="ideas/nova/03-advent-calendar.png" target="_blank" rel="noopener"><img src="ideas/nova/03-advent-calendar.png" alt="Advent Calendar: a 24-door prize wall with door 12 opening" width="1024" height="1536" loading="lazy" decoding="async" /><span>Advent Calendar</span></a>
+        <a class="nova-concepts__item" href="ideas/nova/04-memory-match.png" target="_blank" rel="noopener"><img src="ideas/nova/04-memory-match.png" alt="Memory Match: a 4 by 4 card grid with two matching NOVA cans" width="1024" height="1536" loading="lazy" decoding="async" /><span>Memory Match</span></a>
+        <a class="nova-concepts__item" href="ideas/nova/05-this-or-that.png" target="_blank" rel="noopener"><img src="ideas/nova/05-this-or-that.png" alt="This or That: coffee and tea cards with a swipe gesture" width="1024" height="1536" loading="lazy" decoding="async" /><span>This or That</span></a>
+      </div>
+    </section>
+    <section class="section" id="ideas-spectrum" aria-label="Capability spectrum"></section>
+    <section class="section"><div class="grid grid--ideas" id="ideas-grid" aria-label="Potential mini-games"></div></section>
   </div>
 
   <div id="panel-metrics" class="panel panel--hidden" role="tabpanel" aria-labelledby="tab-metrics" hidden>
-    <main class="hero">
-      <p class="hero__eyebrow">Business case — metrics &amp; data</p>
-      <h1 class="hero__title">Play converts.<br />Here's the data behind it.</h1>
+    <main class="hero m-hero">
+      <p class="eyebrow">Business case · evidence checked October 2026</p>
+      <h1 class="display display--md">Play converts about 2×<b>.</b><br />Three datasets agree<b>.</b></h1>
       <p class="hero__subtitle">
-        Wheel, scratch, runner, prize-drop — independent conversion data backs the
-        pattern. Case studies from TikTok and a DACH FMCG campaign show it scales.
+        Across 2.4 billion sign-up form displays on three platforms, adding a game
+        mechanic roughly doubles conversion. Each figure below links to its primary source.
       </p>
+      <ul class="m-trust" aria-label="Evidence basis">
+        <li><b>2.4B+</b> form displays</li>
+        <li><b>3</b> independent platforms</li>
+        <li><b>6</b> formats mapped to evidence</li>
+      </ul>
     </main>
 
-    <section class="pitch" aria-label="Headline numbers">
-      <p class="pitch__thesis">
-        Gamified mechanics convert leads at a measurable premium over static ads —
-        not a hunch, a pattern across formats.
-      </p>
-      <div class="pitch__grid">
-        <article class="pitch__card">
-          <h2 class="pitch__label">Lead conversion</h2>
-          <p class="pitch__name">40.1%</p>
-          <p class="pitch__meta">Interact, 2025 · avg start→lead across 80M+ leads, quiz funnels</p>
+    <section class="m-section" aria-label="Headline numbers">
+      <div class="m-kpis">
+        <article class="m-kpi m-kpi--lead">
+          <p class="m-kpi__value">≈2×</p>
+          <p class="m-kpi__label">Gamified sign-up vs a plain form</p>
+          <p class="m-kpi__meta">1.75× Omnisend<a class="m-ref" href="#src-1">1</a> · 2.2× Claspo<a class="m-ref" href="#src-2">2</a> · ≈2× Wisepops<a class="m-ref" href="#src-3">3</a></p>
         </article>
-        <article class="pitch__card">
-          <h2 class="pitch__label">Spin-wheel lift</h2>
-          <p class="pitch__name">+75%</p>
-          <p class="pitch__meta">Omnisend, 2025 · gamified wheel popup 3.5% vs static 2.0%</p>
+        <article class="m-kpi">
+          <p class="m-kpi__value">8.66%</p>
+          <p class="m-kpi__label">Scratch-card conversion, vs 3.67% for a plain form</p>
+          <p class="m-kpi__meta">Claspo, ~170M impressions<a class="m-ref" href="#src-2">2</a></p>
         </article>
-        <article class="pitch__card">
-          <h2 class="pitch__label">TikTok brand lift</h2>
-          <p class="pitch__name">+29%</p>
-          <p class="pitch__meta">TikTok for Business · Up (AU) case study, brand preference lift</p>
+        <article class="m-kpi">
+          <p class="m-kpi__value">+29%</p>
+          <p class="m-kpi__label">Brand preference from a coin-catch game by Up, an Australian bank</p>
+          <p class="m-kpi__meta">TikTok brand-lift study<a class="m-ref" href="#src-4">4</a></p>
+        </article>
+        <article class="m-kpi">
+          <p class="m-kpi__value">+71 s</p>
+          <p class="m-kpi__label">Extra viewer time: interactive vs standard video ads</p>
+          <p class="m-kpi__meta">Innovid, 2024 CTV data<a class="m-ref" href="#src-6">6</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="m-section m-charts" aria-label="Charts">
+      <figure class="m-chart">
+        <figcaption>
+          <h2 class="m-chart__title">The lift shows up on every platform</h2>
+          <p class="m-chart__sub">Conversion of a gamified form ÷ a plain form, by data source</p>
+        </figcaption>
+        <div class="m-bars" style="--max: 2.5">
+          <div class="m-bar" tabindex="0" style="--v: 1.75">
+            <span class="m-bar__label">Omnisend<small>1.24B displays · 2025</small></span>
+            <span class="m-bar__track"><span class="m-bar__fill"></span></span>
+            <span class="m-bar__value">1.75×</span>
+            <span class="m-tip" role="tooltip">Wheel of Fortune popups 3.5% vs 2.0% without the wheel</span>
+          </div>
+          <div class="m-bar" tabindex="0" style="--v: 2.2">
+            <span class="m-bar__label">Claspo<small>~170M impressions · 2026</small></span>
+            <span class="m-bar__track"><span class="m-bar__fill"></span></span>
+            <span class="m-bar__value">2.2×</span>
+            <span class="m-tip" role="tooltip">All gamified mechanics 8.08% vs 3.67% for standard list-growth popups</span>
+          </div>
+          <div class="m-bar" tabindex="0" style="--v: 2">
+            <span class="m-bar__label">Wisepops<small>1B displays</small></span>
+            <span class="m-bar__track"><span class="m-bar__fill"></span></span>
+            <span class="m-bar__value">≈2×</span>
+            <span class="m-tip" role="tooltip">Spin-to-win 10.15% avg, “nearly 2×” standard discount popups. The baseline here already has an incentive.</span>
+          </div>
+          <div class="m-axis" aria-hidden="true"><span style="--at: 1">1× = no lift</span></div>
+        </div>
+        <details class="m-table">
+          <summary>View as table</summary>
+          <table>
+            <thead><tr><th>Source</th><th>Plain form</th><th>Gamified</th><th>Lift</th></tr></thead>
+            <tbody>
+              <tr><td>Omnisend (1.24B displays, 2025)</td><td>2.0%</td><td>3.5% (wheel)</td><td>1.75×</td></tr>
+              <tr><td>Claspo (~170M impressions)</td><td>3.67%</td><td>8.08% (all games)</td><td>2.2×</td></tr>
+              <tr><td>Wisepops (1B displays)</td><td>discount popup</td><td>10.15% (wheel)</td><td>≈2×</td></tr>
+            </tbody>
+          </table>
+        </details>
+      </figure>
+
+      <figure class="m-chart">
+        <figcaption>
+          <h2 class="m-chart__title">Every mechanic beats the plain form</h2>
+          <p class="m-chart__sub">Average conversion by mechanic, Claspo<a class="m-ref" href="#src-2">2</a>. Highlighted: what we already ship.</p>
+        </figcaption>
+        <div class="m-bars m-bars--rates" style="--max: 14">
+          <div class="m-bar m-bar--muted" tabindex="0" style="--v: 12.6"><span class="m-bar__label">Slot machine</span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">12.60%</span><span class="m-tip" role="tooltip">3.4× the plain form</span></div>
+          <div class="m-bar m-bar--muted" tabindex="0" style="--v: 9.77"><span class="m-bar__label">Treasure hunt</span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">9.77%</span><span class="m-tip" role="tooltip">2.7× the plain form</span></div>
+          <div class="m-bar" tabindex="0" style="--v: 8.66"><span class="m-bar__label">Scratch card<em>Scratch · Lotto</em></span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">8.66%</span><span class="m-tip" role="tooltip">2.4× the plain form. Wisepops reports 8–10% for scratch-to-reveal.</span></div>
+          <div class="m-bar m-bar--muted" tabindex="0" style="--v: 8.1"><span class="m-bar__label">Break the egg</span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">8.10%</span><span class="m-tip" role="tooltip">2.2× the plain form</span></div>
+          <div class="m-bar" tabindex="0" style="--v: 7.92"><span class="m-bar__label">Spin the wheel<em>Wheel</em></span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">7.92%</span><span class="m-tip" role="tooltip">2.2× the plain form. Top 1% of wheels reached 82%.</span></div>
+          <div class="m-bar m-bar--muted" tabindex="0" style="--v: 7.22"><span class="m-bar__label">Memory matching</span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">7.22%</span><span class="m-tip" role="tooltip">2.0× the plain form</span></div>
+          <div class="m-bar" tabindex="0" style="--v: 7.02"><span class="m-bar__label">Pick a gift<em>≈ Plinko</em></span><span class="m-bar__track"><span class="m-bar__fill"></span></span><span class="m-bar__value">7.02%</span><span class="m-tip" role="tooltip">Closest analog to Plinko: an instant-win reveal. 1.9× the plain form.</span></div>
+          <div class="m-axis" aria-hidden="true"><span style="--at: 3.67">Plain form 3.67%</span></div>
+        </div>
+        <details class="m-table">
+          <summary>View as table</summary>
+          <table>
+            <thead><tr><th>Mechanic</th><th>Avg conversion</th><th>vs plain form (3.67%)</th></tr></thead>
+            <tbody>
+              <tr><td>Slot machine</td><td>12.60%</td><td>3.4×</td></tr>
+              <tr><td>Treasure hunt</td><td>9.77%</td><td>2.7×</td></tr>
+              <tr><td>Scratch card</td><td>8.66%</td><td>2.4×</td></tr>
+              <tr><td>Break the egg</td><td>8.10%</td><td>2.2×</td></tr>
+              <tr><td>Spin the wheel</td><td>7.92%</td><td>2.2×</td></tr>
+              <tr><td>Memory matching</td><td>7.22%</td><td>2.0×</td></tr>
+              <tr><td>Pick a gift</td><td>7.02%</td><td>1.9×</td></tr>
+            </tbody>
+          </table>
+        </details>
+      </figure>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-formats">
+      <h2 class="m-h2" id="m-formats">Evidence for each of our formats</h2>
+      <div class="m-formats">
+        <article class="m-format">
+          <header><h3>Wheel</h3><span class="m-strength m-strength--3"><i aria-hidden="true"></i>Strong</span></header>
+          <p class="m-format__num">3.5% <span>vs 2.0%</span></p>
+          <p>Three platforms and 2.4B+ displays all point the same way: 7.92% on Claspo, 10.15% on Wisepops.<a class="m-ref" href="#src-1">1</a><a class="m-ref" href="#src-2">2</a><a class="m-ref" href="#src-3">3</a></p>
+        </article>
+        <article class="m-format">
+          <header><h3>Scratch · Lotto</h3><span class="m-strength m-strength--2"><i aria-hidden="true"></i>Solid</span></header>
+          <p class="m-format__num">8.66% <span>vs 3.67%</span></p>
+          <p>Two independent benchmarks: Claspo puts scratch cards at 8.66%, Wisepops at 8–10%.<a class="m-ref" href="#src-2">2</a><a class="m-ref" href="#src-3">3</a></p>
+        </article>
+        <article class="m-format">
+          <header><h3>Catch the Drop</h3><span class="m-strength m-strength--2"><i aria-hidden="true"></i>Case study</span></header>
+          <p class="m-format__num">+29% <span>brand preference</span></p>
+          <p>The same catch-the-coins mechanic, run by the bank Up on TikTok: +7.6% ad recall, 13M+ views.<a class="m-ref" href="#src-4">4</a></p>
+        </article>
+        <article class="m-format">
+          <header><h3>Runner</h3><span class="m-strength m-strength--1"><i aria-hidden="true"></i>Directional</span></header>
+          <p class="m-format__num">656k <span>plays</span></p>
+          <p>Berocca's drive-and-collect game drew 50.9M views.<a class="m-ref" href="#src-5">5</a> In gaming, playable ads are 20× likelier than banners to drive installs.<a class="m-ref" href="#src-7">7</a></p>
+        </article>
+        <article class="m-format">
+          <header><h3>Plinko</h3><span class="m-strength m-strength--1"><i aria-hidden="true"></i>Directional</span></header>
+          <p class="m-format__num">7.02% <span>closest analog</span></p>
+          <p>No Plinko benchmark exists. The nearest instant-win reveals are pick-a-gift (7.02%) and pick-a-box (7–9%).<a class="m-ref" href="#src-2">2</a><a class="m-ref" href="#src-3">3</a></p>
+        </article>
+        <article class="m-format m-format--planned">
+          <header><h3>Quiz <small>planned</small></h3><span class="m-strength m-strength--3"><i aria-hidden="true"></i>Strong</span></header>
+          <p class="m-format__num">40.1% <span>start → lead</span></p>
+          <p>From 80M+ quiz leads. The rate counts only people who already started a quiz, not everyone who saw the ad.<a class="m-ref" href="#src-8">8</a></p>
         </article>
       </div>
     </section>
 
-    <section class="spectrum" aria-label="Evidence by mechanic">
-      <h2 class="spectrum__title">Evidence by mechanic</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">Spin wheel</span>
-          <span class="spectrum__items">Omnisend, 2025 — gamified wheel popups convert 3.5% vs 2.0% static (+75%).</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Scratch card</span>
-          <span class="spectrum__items">No dedicated benchmark exists — same reveal-a-prize psychology as the wheel above.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Endless runner / mini-game</span>
-          <span class="spectrum__items">No lead-gen benchmark for this mechanic. Closest signal: Pangle × Rocket Game Studio, 2024 — 20% above target ROAS, scaled 15x across 36 markets. App-install UA context, not lead-gen — a directional proxy, not runner-specific proof.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Plinko / prize-drop</span>
-          <span class="spectrum__items">No public benchmark exists yet — treat as an instant-win variant until we have first-party data.</span>
-        </li>
-      </ul>
-      <p class="hero__note">
-        Direct, on-point data exists for two of four: wheel and the quiz-funnel
-        pattern the others share. Scratch, runner, and plinko ride on that broader
-        gamification pattern plus adjacent cases, not their own study. Vertical
-        coverage skews FMCG/gaming too — DACH banking, travel, and mobility case
-        studies are still to be built, likely first-party once we ship this line.
-      </p>
+    <section class="m-section m-split" aria-label="How to read and what comes next">
+      <div class="m-panel">
+        <h2 class="m-h2">Read before quoting</h2>
+        <ol class="m-caveats">
+          <li><b>On-site, not paid media.</b> The form data comes from sign-ups on brand websites. Quote the multiplier, not the absolute rate.</li>
+          <li><b>Vendor-reported.</b> Every source sells the tool it measures. The case rests on three vendors agreeing, not on any one of them.</li>
+          <li><b>Incentives.</b> Most wheels promise a discount. Wisepops compares wheels against popups that also offer a discount and still sees ≈2×.</li>
+          <li><b>Brand-lift cases are single campaigns,</b> with paid media and creators running alongside.</li>
+        </ol>
+      </div>
+      <div class="m-panel m-panel--accent">
+        <h2 class="m-h2">Next: our own numbers</h2>
+        <p class="m-panel__lead">Every live demo can log the funnel. After two pilots these replace the borrowed benchmarks.</p>
+        <ul class="m-funnel">
+          <li><span>Play rate</span>impression → start</li>
+          <li><span>Completion</span>start → finish</li>
+          <li><span>Lead rate</span>finish → opt-in</li>
+          <li><span>Replay rate</span>rounds per player</li>
+          <li><span>CPL</span>vs the client's static creative</li>
+        </ul>
+      </div>
     </section>
 
-    <section class="grid" aria-label="Case studies">
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">🪙</span>
-          <span class="card__status">Case study</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">Up — coin-catch branded effect</h2>
-          <p class="card__subtitle">TikTok gamified ad, Australia</p>
-          <p class="card__description">
-            15M+ impressions, 13M+ video views, 250+ pieces of UGC. +7.6% ad recall,
-            +29% brand preference.
-          </p>
-        </div>
-        <div class="card__footer">
-          <span class="card__meta">TikTok for Business case study</span>
-        </div>
-      </article>
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">👑</span>
-          <span class="card__status">Case study</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">Angriest Whopper — advergame</h2>
-          <p class="card__subtitle">Burger King Germany, 2016</p>
-          <p class="card__description">
-            336,700 plays and 135,883 coupon redemptions in 14 days, zero paid media
-            — grew to 1M+ sessions and 2.5M+ app downloads within two months.
-          </p>
-        </div>
-        <div class="card__footer">
-          <span class="card__meta">DACH case study · Gamewheel + independent write-ups</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="spectrum" aria-label="Build vs buy">
-      <h2 class="spectrum__title">Build vs buy</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">Outgrow</span>
-          <span class="spectrum__items">$14–25/mo entry, jumps to $600/mo (Business tier) just to remove Outgrow branding and use a custom domain. Public pricing, subject to change.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Wheelio</span>
-          <span class="spectrum__items">From ~$14.92/mo, Shopify-only. White-label and A/B testing gated behind higher tiers. Public pricing, subject to change.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">DACH competitors</span>
-          <span class="spectrum__items">Real market: Gamewheel (Berlin, founded 2014) is a direct competitor — playable-ad/gamification agency + platform, 3000+ playable ads claimed, 40% CTR (their own figure, unaudited). Plus an established "Glücksrad mieten" niche of trade-show wheel-rental agencies (HAPPY Marketing Solutions, event-spiel.de, and others) — mostly physical/hybrid, tablet-controlled, generic templates. Our edge is owning a configurable code engine, not "nobody does this here."</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">3D / WebGL space</span>
-          <span class="spectrum__items">Less crowded — specialized vendors exist (Threekit, Danthree Studio, ConfigureKit, Nexgits) but they build for e-commerce configurators, not social/ad agencies. The real differentiation gap sits here, not in wheel/scratch.</span>
-        </li>
-      </ul>
-      <p class="hero__note">
-        Off-the-shelf 2D tools charge monthly and still show their brand at low
-        tiers — our edge there is custom branding with no rent from day one, not
-        a new mechanic. The 3D formats (configurator, quiz, plinko) are where the
-        market is genuinely thinner and the wow-factor argument is strongest.
-      </p>
-    </section>
-
-    <section class="spectrum" aria-label="Where marswalk can run this">
-      <h2 class="spectrum__title">Where marswalk can run this</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">Influencer package add-on</span>
-          <span class="spectrum__items">Sold as a paid add-on to a package already booked — e.g. a 3-influencer campaign gets an interactive layer (wheel, scratch, quiz) bolted on to lift engagement rate. No new sales motion, no new line item competing for its own budget — an attach-rate upsell on deals already closed.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">TikTok in-feed / Branded Effects</span>
-          <span class="spectrum__items">Wheel, scratch, or plinko as an interactive in-feed unit, or a branded-effect layer like the Up case study above. Same React/canvas build already runs mobile-first inside a WebView — no separate mobile build needed.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Campaign microsite / landing page</span>
-          <span class="spectrum__items">Wheel, scratch, lotto, or runner embedded behind a paid-social or email link. Config swap per client, not a rebuild — already proven live in the wheel demo's multi-brand switcher.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Live events &amp; trade booths</span>
-          <span class="spectrum__items">Plinko or wheel on a kiosk/tablet at a Messestand — the same market as the Glücksrad-rental agencies above, except we own the code instead of renting a kiosk.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Client retainer upsell</span>
-          <span class="spectrum__items">Reskinning an existing engine per client campaign is a config + asset change, not a rebuild — billable turnaround in days, margin on repeat use of the same code.</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="spectrum" aria-label="Benefits for marswalk">
-      <h2 class="spectrum__title">Benefits — for marswalk</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">New revenue, no new sales motion</span>
-          <span class="spectrum__items">Attach-rate upsell on packages already sold — no separate pitch, no new client acquisition needed to start billing this.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Margin scales with reuse</span>
-          <span class="spectrum__items">Same engine reskinned per client is a config + asset change, not a rebuild — each new client costs days, not weeks, and the codebase amortizes across all of them.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Premium differentiation</span>
-          <span class="spectrum__items">Owning the code beats reselling Outgrow/Wheelio or renting a Glücksrad kiosk — the pitch to clients becomes "custom-built for you," not "we installed a widget."</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Portfolio leverage</span>
-          <span class="spectrum__items">The 3D formats (plinko now, configurator/quiz next) are a wow-factor demo that helps win bigger accounts — most agencies in this space can't show this.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Retention lever</span>
-          <span class="spectrum__items">Once a client's campaign runs on our engine, switching to a competitor means rebuilding the interactive layer from scratch — a reason to keep the retainer.</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="spectrum" aria-label="Benefits for the client">
-      <h2 class="spectrum__title">Benefits — for the client</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">Measurable lift, not a guess</span>
-          <span class="spectrum__items">Backed by the numbers above — 40.1% quiz lead conversion, +75% wheel-popup lift, +29% TikTok brand preference lift.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Fully custom branded experience</span>
-          <span class="spectrum__items">Their brand, their colors, their prize logic — not a generic widget still carrying someone else's template or watermark at the low pricing tier.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Zero extra tech overhead</span>
-          <span class="spectrum__items">Bundled into a service they already buy from us — no new vendor contract, no new tool for their team to manage or learn.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Built-in lead capture</span>
-          <span class="spectrum__items">Plugs directly into the campaign funnel they're already running — the prize/reveal moment doubles as the opt-in.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Stands out in-category</span>
-          <span class="spectrum__items">Most FMCG/banking/travel/mobility competitors are still running static ads — an interactive layer is an easy visual differentiator in the same feed.</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="spectrum" aria-label="Delivery and domains">
-      <h2 class="spectrum__title">Delivery &amp; domains</h2>
-      <ul class="spectrum__list">
-        <li class="spectrum__item">
-          <span class="spectrum__label">Default: our subdomain</span>
-          <span class="spectrum__items">clientname.marswalk.media — zero coordination, live immediately, we control it end to end. Right default for fast-turnaround activations (TikTok in-feed, QR at a booth) where waiting on client IT isn't an option.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Upgrade: client's subdomain</span>
-          <span class="spectrum__items">promo.clientbrand.com — one CNAME record from their side, inherits their brand trust. Worth the coordination delay for bigger retainer clients or planned campaigns, not for quick activations.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Skip: one-off purchased domains</span>
-          <span class="spectrum__items">Buying a new domain per campaign is recurring cost and setup for no real benefit here — domain age mostly matters for email/SMS deliverability, not ad-platform landing pages. Reserve it for the rare campaign with its own standalone brand identity.</span>
-        </li>
-        <li class="spectrum__item">
-          <span class="spectrum__label">Never: raw *.vercel.app links</span>
-          <span class="spectrum__items">Fine for showing a draft to the client before launch. Not for production ads — ad platforms often flag shared platform domains, and there's no first-party tracking. Same build either way, just swap the domain alias in Vercel.</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="grid" aria-label="Vertical playbook">
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">🛒</span>
-          <span class="card__status">FMCG</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">Spin-to-win, in-store QR</h2>
-          <p class="card__subtitle">Wheel · promo code</p>
-          <p class="card__description">
-            QR on-pack or at shelf opens the wheel, spin for a promo code —
-            zero-media-budget precedent already proven in the Burger King
-            Germany case study above.
-          </p>
-        </div>
-      </article>
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">🏦</span>
-          <span class="card__status">Banking</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">"Which account fits you" quiz</h2>
-          <p class="card__subtitle">Quiz · soft lead qualification</p>
-          <p class="card__description">
-            A branching quiz sorts prospects into a product fit before a human
-            touches the lead — the mechanic behind Interact's 40.1% quiz
-            conversion figure above.
-          </p>
-        </div>
-      </article>
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">✈️</span>
-          <span class="card__status">Travel</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">Seasonal scratch-card promo</h2>
-          <p class="card__subtitle">Scratch · early-bird discount</p>
-          <p class="card__description">
-            Landing-page scratch card tied to a seasonal campaign window —
-            reveal-a-discount instead of a static "book now" banner.
-          </p>
-        </div>
-      </article>
-      <article class="card card--idea">
-        <div class="card__top">
-          <span class="card__icon">🚗</span>
-          <span class="card__status">Mobility</span>
-        </div>
-        <div class="card__body">
-          <h2 class="card__title">Runner or plinko at dealer events</h2>
-          <p class="card__subtitle">Runner / Plinko · booth activation</p>
-          <p class="card__description">
-            Gridlock Run or the plinko board on a booth screen at a dealer
-            event or roadshow — same build already live, reskinned per client.
-          </p>
-        </div>
-      </article>
-    </section>
-
-    <section class="pitch" aria-label="The ask">
-      <p class="pitch__thesis">
-        Not a new service line — an add-on to packages we already sell. Wheel,
-        scratch, runner, and plinko are already built and live. The ask is
-        budget to finish the two "wow" formats and the client-facing polish.
-      </p>
-      <div class="pitch__grid">
-        <article class="pitch__card">
-          <h2 class="pitch__label">Already sunk</h2>
-          <p class="pitch__name">4 live prototypes</p>
-          <p class="pitch__meta">Wheel, scratch/lotto, runner, plinko — built, deployed, this tab included</p>
+    <section class="m-section" aria-labelledby="m-cases">
+      <h2 class="m-h2" id="m-cases">Case studies</h2>
+      <div class="m-cases">
+        <article class="m-case">
+          <p class="m-case__tag">Banking · TikTok · Australia</p>
+          <h3>Up: coin-catch game</h3>
+          <dl>
+            <div><dt>+29%</dt><dd>brand preference</dd></div>
+            <div><dt>+7.6%</dt><dd>ad recall</dd></div>
+            <div><dt>13M+</dt><dd>video views</dd></div>
+            <div><dt>250+</dt><dd>UGC pieces</dd></div>
+          </dl>
+          <p class="m-case__src">TikTok for Business case study<a class="m-ref" href="#src-4">4</a></p>
         </article>
-        <article class="pitch__card pitch__card--planned">
-          <h2 class="pitch__label">Remaining — 3D Configurator</h2>
-          <p class="pitch__name">~28–32h</p>
-          <p class="pitch__meta">prototype-3-configurator.md · premium brand-experience format</p>
+        <article class="m-case">
+          <p class="m-case__tag">FMCG · TikTok · Vietnam</p>
+          <h3>Berocca: drive and collect</h3>
+          <dl>
+            <div><dt>656k</dt><dd>plays</dd></div>
+            <div><dt>50.9M</dt><dd>views</dd></div>
+            <div><dt>8k+</dt><dd>creations</dd></div>
+            <div><dt>90%</dt><dd>of plays in 6 days</dd></div>
+          </dl>
+          <p class="m-case__src">TikTok for Business case study<a class="m-ref" href="#src-5">5</a></p>
         </article>
-        <article class="pitch__card pitch__card--planned">
-          <h2 class="pitch__label">Remaining — Personality Quiz</h2>
-          <p class="pitch__name">~30–34h</p>
-          <p class="pitch__meta">prototype-4-quiz.md · top-of-funnel viral format</p>
+        <article class="m-case">
+          <p class="m-case__tag">QSR · Germany · 2016</p>
+          <h3>Burger King: Angriest Whopper</h3>
+          <dl>
+            <div><dt>336.7k</dt><dd>plays in 14 days</dd></div>
+            <div><dt>135.9k</dt><dd>coupons</dd></div>
+            <div><dt>€0</dt><dd>paid media</dd></div>
+            <div><dt>1M+</dt><dd>sessions in 2 months</dd></div>
+          </dl>
+          <p class="m-case__src">Gamewheel plus trade press. Historic and not re-verified in Oct 2026; the only DACH example we have.<a class="m-ref" href="#src-9">9</a></p>
         </article>
       </div>
-      <p class="hero__note">
-        ~60–66h combined, roughly 4–5 weeks at 15–20h/week for one developer in
-        spare time — consistent with the original estimate in overview.md. Same
-        engine-plus-config pattern as the four formats already live.
-      </p>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-buy">
+      <h2 class="m-h2" id="m-buy">Build vs buy</h2>
+      <div class="m-compare" role="table" aria-label="Build vs buy">
+        <div class="m-compare__row m-compare__head" role="row"><span role="columnheader">Option</span><span role="columnheader">Model</span><span role="columnheader">Catch</span></div>
+        <div class="m-compare__row" role="row"><span role="cell"><b>Outgrow</b></span><span role="cell">SaaS from $14–25/mo</span><span role="cell">$600/mo (Business tier) to remove their branding and use your own domain</span></div>
+        <div class="m-compare__row" role="row"><span role="cell"><b>Wheelio</b></span><span role="cell">SaaS from ~$14.92/mo</span><span role="cell">Shopify only; white-label and A/B tests cost extra</span></div>
+        <div class="m-compare__row" role="row"><span role="cell"><b>Gamewheel</b></span><span role="cell">Berlin agency + platform</span><span role="cell">Direct DACH competitor; claims 40% CTR (self-reported)</span></div>
+        <div class="m-compare__row" role="row"><span role="cell"><b>Glücksrad rental</b></span><span role="cell">Physical/tablet kiosk</span><span role="cell">Generic templates, rented per event</span></div>
+        <div class="m-compare__row m-compare__row--us" role="row"><span role="cell"><b>marswalk engine</b></span><span role="cell">Owned code, config per client</span><span role="cell">No subscription; a reskin takes days</span></div>
+      </div>
+      <p class="m-note">Public pricing as checked in July 2026; it may have changed. 2D tools are crowded, so our edge there is custom branding with no rent. 3D (plinko, configurator) is where the market is thin.</p>
+    </section>
+
+    <section class="m-section m-split" aria-label="Benefits">
+      <div class="m-panel">
+        <h2 class="m-h2">For marswalk</h2>
+        <ul class="m-ticks">
+          <li><b>Revenue without a new sales motion:</b> an add-on to packages we already sell, e.g. three influencers plus a game layer.</li>
+          <li><b>Margin grows with reuse:</b> each client is a config and asset swap, not a rebuild.</li>
+          <li><b>Premium positioning:</b> "custom-built for you" instead of "we installed a widget".</li>
+          <li><b>Retention:</b> leaving us means rebuilding the interactive layer.</li>
+        </ul>
+      </div>
+      <div class="m-panel">
+        <h2 class="m-h2">For the client</h2>
+        <ul class="m-ticks">
+          <li><b>About 2× sign-up conversion</b> on the same traffic, going by three benchmarks.</li>
+          <li><b>Fully their brand:</b> no third-party watermark or template.</li>
+          <li><b>Lead capture built in:</b> the prize moment doubles as the opt-in.</li>
+          <li><b>No new vendor:</b> it is bundled into a service they already buy.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-where">
+      <h2 class="m-h2" id="m-where">Where it runs, by vertical</h2>
+      <div class="m-play">
+        <article><span class="m-play__icon">🛒</span><h3>FMCG</h3><p>Wheel behind a QR code on the pack or at the shelf. Wheels have the strongest evidence of any format.</p></article>
+        <article><span class="m-play__icon">🏦</span><h3>Banking</h3><p>Catch the Drop for awareness, the way Up did, and a quiz to qualify leads.</p></article>
+        <article><span class="m-play__icon">✈️</span><h3>Travel</h3><p>A scratch card for early-bird discounts; scratch cards average 8.66%.</p></article>
+        <article><span class="m-play__icon">🛴</span><h3>Mobility</h3><p>The City Rush runner at dealer events and in social, like Berocca's drive-and-collect game.</p></article>
+      </div>
+      <ul class="m-channels" aria-label="Channels">
+        <li>Influencer package add-on</li>
+        <li>TikTok in-feed / Branded Effects</li>
+        <li>Campaign landing page</li>
+        <li>Trade booth kiosk</li>
+        <li>Retainer reskins</li>
+      </ul>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-domains">
+      <h2 class="m-h2" id="m-domains">Delivery &amp; domains</h2>
+      <div class="m-domains">
+        <div><span class="m-pill m-pill--go">Default</span><code>client.marswalk.media</code><p>Live immediately with no client IT involved. Fits fast activations.</p></div>
+        <div><span class="m-pill">Upgrade</span><code>promo.clientbrand.com</code><p>One CNAME record on their side; the page inherits their brand trust.</p></div>
+        <div><span class="m-pill m-pill--dim">Skip</span><code>new-domain-per-campaign.de</code><p>A recurring cost with no real benefit for ad landing pages.</p></div>
+        <div><span class="m-pill m-pill--stop">Never</span><code>*.vercel.app</code><p>Fine for drafts, but ad platforms flag shared domains and tracking is lost.</p></div>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-ask">
+      <h2 class="m-h2" id="m-ask">The ask</h2>
+      <div class="m-ask">
+        <div class="m-ask__done"><p class="m-kpi__value">6</p><p>live formats already built: wheel, scratch, lotto, runner, plinko, catch</p></div>
+        <div><p class="m-ask__h">~28–32h</p><p>3D Configurator · premium brand experience</p></div>
+        <div><p class="m-ask__h">~30–34h</p><p>Personality Quiz · lead qualification, 40.1% start→lead</p></div>
+      </div>
+      <p class="m-note">~60–66h in total: roughly 4–5 weeks at 15–20h/week for one developer. It is an add-on to packages we already sell, not a new service line.</p>
+    </section>
+
+    <section class="m-section" aria-labelledby="m-sources">
+      <h2 class="m-h2" id="m-sources">Sources</h2>
+      <ol class="m-sources">
+        <li id="src-1"><a href="https://www.omnisend.com/blog/email-popup-statistics/" target="_blank" rel="noopener">Omnisend: email popup statistics</a>. 1.24B displays, calendar year 2025.</li>
+        <li id="src-2"><a href="https://claspo.io/blog/popup-conversion-rate-benchmarks/" target="_blank" rel="noopener">Claspo: popup conversion rate benchmarks</a>. ~170M impressions, updated Oct 2026.</li>
+        <li id="src-3"><a href="https://wisepops.com/use-cases/spin-to-win-popups" target="_blank" rel="noopener">Wisepops: spin-to-win benchmarks</a>. 1B popup displays.</li>
+        <li id="src-4"><a href="https://ads.tiktok.com/business/ko/inspiration/up-315" target="_blank" rel="noopener">TikTok for Business: Up</a>, plus <a href="https://www.bandt.com.au/up-makes-money-easy-on-tiktok-with-australias-first-gamified-effect/" target="_blank" rel="noopener">B&amp;T coverage</a>.</li>
+        <li id="src-5"><a href="https://ads.tiktok.com/business/en/inspiration/berocca-vietnam" target="_blank" rel="noopener">TikTok for Business: Berocca Vietnam</a>.</li>
+        <li id="src-6"><a href="https://www.innovid.com/about-us/news/ctv-benchmarks-reveal-big-opportunities-reach-frequency-interactive-engagement" target="_blank" rel="noopener">Innovid: 2025 CTV Advertising Insights</a>. 2024 impressions.</li>
+        <li id="src-7"><a href="https://prnewswire.co.uk/news-releases/liftoff-mobile-ad-creative-index-reveals-ugc-and-interstitial-ads-are-key-to-unlocking-advertising-roi-302078554.html" target="_blank" rel="noopener">Liftoff: Mobile Ad Creative Index</a>. 602B impressions. In the same data, banners won on 7-day ROI.</li>
+        <li id="src-8"><a href="https://tryinteract.com/blog/quiz-conversion-rate-report/" target="_blank" rel="noopener">Interact: Quiz Conversion Rate Report 2026</a>.</li>
+        <li id="src-9">Burger King DE "Angriest Whopper" (Gamewheel, 2016). Vendor case plus trade press; see evidence-tab-plan.md.</li>
+      </ol>
     </section>
   </div>
 
   <footer class="footer">
-    <span>marswalk.media — interactive ad tools demo suite</span>
-    <span id="footer-date"></span>
+    <p class="footer__big">Let's make brands playable<b>.</b></p>
+    <div class="footer__row">
+      <span class="wordmark wordmark--sm">MARSWALK<i>•</i></span>
+      <span>Interactive formats · demo suite</span>
+      <span id="footer-date"></span>
+    </div>
   </footer>
 
   <script src="prototypes.config.js"></script>
