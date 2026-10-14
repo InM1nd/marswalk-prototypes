@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:4000** — hub at `/`, prototypes proxied under `/wheel`, `/scratch`, `/runner`, `/plinko`, `/catch`, `/advent`.
+Open **http://localhost:4000** — hub at `/`, prototypes proxied under `/wheel`, `/scratch`, `/runner`, `/plinko`, `/catch`, `/advent`, `/yamaha-beats`.
 
 ```bash
 npm run build   # → dist/ (single Vercel static project)
@@ -27,6 +27,7 @@ npm run build   # → dist/ (single Vercel static project)
 | `/plinko/` | 3D Plinko |
 | `/catch/` | Catch the Drop |
 | `/advent/` | Advent Calendar (Next.js static export, Drei Austria pitch) |
+| `/yamaha-beats/` | Groovebox & step sequencer, pure Web Audio (Next.js static export, Yamaha Music Europe pitch) |
 
 Planned (not built): 3D Configurator, Personality Quiz.
 
