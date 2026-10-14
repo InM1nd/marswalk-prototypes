@@ -1,6 +1,14 @@
-export type DropKind = 'burger' | 'pizza' | 'donut' | 'coin' | 'clock';
+export type DropKind = 'balea' | 'alverde' | 'ebelin' | 'coupon' | 'bomb' | 'box';
 
-export const GOOD_KINDS: DropKind[] = ['burger', 'pizza', 'donut'];
+export const GOOD_KINDS: DropKind[] = ['balea', 'alverde', 'ebelin'];
+export const POINTS: Record<DropKind, number> = {
+  balea: 10,
+  alverde: 15,
+  ebelin: 20,
+  coupon: 50,
+  bomb: 0,
+  box: 0,
+};
 
 export interface DropTuning {
   fallSpeed: number;
@@ -34,7 +42,7 @@ export const CATCH_SLACK = 36;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export function isBad(kind: DropKind): boolean {
-  return kind === 'clock';
+  return kind === 'bomb' || kind === 'box';
 }
 
 export function spawnIntervalMs(t: DropTuning, progress: number): number {
@@ -57,7 +65,14 @@ export function planDrop(
   const p = Math.min(1, progress);
   const roll = rand();
   const badChance = lerp(tuning.badChance, tuning.badChanceEnd, p);
-  const kind: DropKind = roll < badChance ? 'clock' : roll < badChance + tuning.goldenChance ? 'coin' : GOOD_KINDS[Math.floor(rand() * GOOD_KINDS.length)];
+  const kind: DropKind =
+    roll < badChance
+      ? rand() < 0.7
+        ? 'bomb'
+        : 'box'
+      : roll < badChance + tuning.goldenChance
+        ? 'coupon'
+        : GOOD_KINDS[Math.floor(rand() * GOOD_KINDS.length)];
   // No per-drop speed jitter: drops then arrive in spawn order, which the reach rule relies on.
   const speed = lerp(tuning.fallSpeed, tuning.fallSpeedEnd, p);
   const arrival = now + fallDistance / speed;
@@ -72,7 +87,12 @@ export function planDrop(
   }
 
   const clashes = (x: number) =>
-    recent.some((d) => isBad(d.kind) !== isBad(kind) && Math.abs(d.arrival - arrival) < CLASH_S && Math.abs(d.x - x) < SAFE_GAP);
+    recent.some(
+      (d) =>
+        isBad(d.kind) !== isBad(kind) &&
+        Math.abs(d.arrival - arrival) < CLASH_S &&
+        Math.abs(d.x - x) < SAFE_GAP,
+    );
 
   let x = lo + rand() * (hi - lo);
   for (let i = 0; i < 8 && clashes(x); i++) x = lo + rand() * (hi - lo);

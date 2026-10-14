@@ -1,31 +1,78 @@
 import type { CatchConfig } from '../config/schema';
+import { DmAsset, DmLogo, DM_PRODUCTS } from '../components/assets/DmAssets';
 
-interface StartScreenProps {
+export function StartScreen({
+  config,
+  onStart,
+  disabled,
+}: {
   config: CatchConfig;
   onStart: () => void;
-  disabled: boolean;
-}
-
-export function StartScreen({ config, onStart, disabled }: StartScreenProps) {
-  const { copy, prize } = config;
+  disabled?: boolean;
+}) {
   return (
     <div className="overlay overlay--start">
-      <div className="card">
-        <p className="card__eyebrow">{copy.eyebrow}</p>
-        <h1 className="card__title">{copy.title}</h1>
-        <p className="card__text">{copy.subtitle}</p>
-        <ul className="howto">
-          <li><span className="howto__icon" aria-hidden="true">👉</span>Drag the bag</li>
-          <li><span className="howto__icon" aria-hidden="true">🍔</span>Catch the food</li>
-          <li><span className="howto__icon" aria-hidden="true">⏰</span>Dodge late clocks</li>
-        </ul>
-        <div className="prize-chip">
-          <span className="prize-chip__badge">{prize.label}</span>
-          <span>Score <b>{prize.threshold}</b> to win {prize.title.toLowerCase()}</span>
+      <div className="start-content">
+        <div className="start-brand">
+          <DmLogo />
+          <span>
+            BLACK FRIDAY
+            <br />
+            <b>GLÜCKSKORB</b>
+          </span>
+          <span className="edition">
+            SPECIAL
+            <br />
+            EDITION
+          </span>
         </div>
-        <button type="button" className="btn btn--primary btn--big" onClick={onStart} disabled={disabled}>
-          {disabled ? 'Loading…' : copy.startButtonLabel}
+        <div className="start-hero" aria-hidden="true">
+          <div className="hero-orbit" />
+          <DmAsset kind="balea" className="hero-product hero-product--balea" />
+          <DmAsset kind="alverde" className="hero-product hero-product--alverde" />
+          <DmAsset kind="ebelin" className="hero-product hero-product--ebelin" />
+          <DmAsset kind="coupon" className="hero-product hero-product--coupon" />
+          <DmAsset kind="basket" className="hero-basket" />
+          <span className="hero-spark hero-spark--one">✦</span>
+          <span className="hero-spark hero-spark--two">✧</span>
+          <span className="hero-reward">
+            DEIN BONUS
+            <br />
+            <b>−15%</b>
+          </span>
+        </div>
+        <p className="eyebrow">30 SEKUNDEN. DEIN GLÜCKSFANG.</p>
+        <h1>{config.copy.title}</h1>
+        <p className="start-copy">
+          Lieblingsprodukte fangen.
+          <br />
+          Black Friday Bonus sichern.
+        </p>
+        <div className="product-lineup" aria-label="Produkte und Punkte">
+          {DM_PRODUCTS.map((p) => (
+            <div className="product-mini" key={p.kind}>
+              <DmAsset kind={p.kind} alt={`${p.name} ${p.detail}`} />
+              <strong>+{p.points}</strong>
+              <span>{p.name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="hazard-hint">
+          <DmAsset kind="bomb" />
+          <DmAsset kind="box" />
+          <span>
+            Preisteufel & Kartons? <b>Lieber ausweichen!</b>
+          </span>
+        </div>
+        <button type="button" className="btn btn--primary" disabled={disabled} onClick={onStart}>
+          {disabled ? 'SPIEL WIRD GELADEN …' : config.copy.startButtonLabel}
+          <span aria-hidden="true">→</span>
         </button>
+        <p className="start-help">
+          Wischen, Maus bewegen oder ← → drücken.
+          <br />
+          <b>250 Punkte</b> direkt gewinnen · <b>150 Punkte</b> nach 30 s reichen auch.
+        </p>
       </div>
     </div>
   );
