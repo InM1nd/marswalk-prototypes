@@ -3,14 +3,15 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-all.mjs",
-    "dev": "concurrently -n hub,wheel,scratch,runner,plinko,catch,advent -c cyan,yellow,green,magenta,red,blue,white \"npm:dev:hub\" \"npm:dev:wheel\" \"npm:dev:scratch\" \"npm:dev:runner\" \"npm:dev:plinko\" \"npm:dev:catch\" \"npm:dev:advent\"",
+    "dev": "concurrently -n hub,wheel,scratch,runner,plinko,catch,advent,yamaha -c cyan,yellow,green,magenta,red,blue,white,gray \"npm:dev:hub\" \"npm:dev:wheel\" \"npm:dev:scratch\" \"npm:dev:runner\" \"npm:dev:plinko\" \"npm:dev:catch\" \"npm:dev:advent\" \"npm:dev:yamaha\"",
     "dev:hub": "node scripts/dev-server.mjs",
     "dev:wheel": "VITE_BASE_PATH=/wheel/ npm --prefix apps/wheel run dev",
     "dev:scratch": "VITE_BASE_PATH=/scratch/ npm --prefix apps/scratch run dev -- --port 5174",
     "dev:runner": "VITE_BASE_PATH=/runner/ npm --prefix apps/runner run dev -- --port 5175",
     "dev:plinko": "VITE_BASE_PATH=/plinko/ npm --prefix apps/plinko run dev -- --port 5176",
     "dev:catch": "VITE_BASE_PATH=/catch/ npm --prefix apps/catch run dev -- --port 5177",
-    "dev:advent": "npm --prefix apps/advent run dev"
+    "dev:advent": "npm --prefix apps/advent run dev",
+    "dev:yamaha": "npm --prefix apps/yamaha-beats run dev"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

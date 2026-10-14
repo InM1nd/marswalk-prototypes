@@ -1,0 +1,136 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-purple: #7b2cbf;
+  --color-purple-2: #9d4edd;
+  --color-orange: #ff5500;
+  --color-cyan: #00f5d4;
+  --color-gold: #f5b700;
+  --font-sans: var(--nf-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--nf-mono), ui-monospace, monospace;
+}
+
+html {
+  background: #0b0b0d;
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100dvh;
+  color: #e7e7ea;
+  /* a dim studio desk with one soft light above the device */
+  background:
+    radial-gradient(60rem 28rem at 50% 0%, rgb(255 255 255 / 0.06), transparent 70%),
+    #0b0b0d;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Brushed, anodized aluminium chassis */
+.chassis {
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #1a1b20 0%, #141519 55%, #111215 100%);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    inset 0 -2px 0 rgb(0 0 0 / 0.6),
+    0 40px 80px -30px rgb(0 0 0 / 0.9),
+    0 2px 0 #050506;
+}
+
+/* Recessed panel milled into the chassis */
+.well {
+  background: linear-gradient(180deg, #0e0f12, #121317);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.7), inset 0 -1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* Silkscreen labels */
+.silk {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.38);
+}
+
+.screw {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #4a4c55, #1b1c21 70%);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.6), 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.screw::after {
+  content: '';
+  position: absolute;
+  inset: 4.5px 2px;
+  border-radius: 2px;
+  background: #0b0b0d;
+  transform: rotate(var(--r, 35deg));
+}
+
+/* Physical keycap / rubber button */
+.keycap {
+  border-radius: 10px;
+  background: linear-gradient(180deg, #26272d, #1c1d22);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 2px 0 #08080a, 0 4px 8px rgb(0 0 0 / 0.45);
+  transition: transform 80ms, box-shadow 80ms;
+}
+.keycap:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 0 0 #08080a, 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+/* Small indicator LED. Set --c for the lit color. */
+.led {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #2a2b31;
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.6);
+}
+.led-on {
+  background: color-mix(in oklab, var(--c) 70%, white);
+  box-shadow: 0 0 6px var(--c), 0 0 12px color-mix(in oklab, var(--c) 50%, transparent);
+}
+
+/* Silicone step pad: dark rubber; lit from beneath with --c when active. */
+.pad {
+  border-radius: 7px;
+  background: linear-gradient(180deg, #22232a, #18191d);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 2px 0 #070708, 0 3px 6px rgb(0 0 0 / 0.5);
+  transition: transform 90ms ease-out, background 120ms, box-shadow 120ms;
+}
+.pad[data-on='true'] {
+  background: radial-gradient(circle at 50% 38%, color-mix(in oklab, var(--c) 55%, white), var(--c) 55%, color-mix(in oklab, var(--c) 65%, black));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 0 #070708, 0 0 14px color-mix(in oklab, var(--c) 55%, transparent);
+}
+.pad[data-head='true'] {
+  background: linear-gradient(180deg, #2e3038, #23242a);
+}
+.pad[data-on='true'][data-head='true'] {
+  transform: scale(1.06);
+  background: radial-gradient(circle at 50% 40%, white, color-mix(in oklab, var(--c) 45%, white) 45%, var(--c));
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6), 0 0 26px var(--c), 0 0 48px color-mix(in oklab, var(--c) 45%, transparent);
+}
+
+@keyframes hint {
+  0%, 100% { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 2px 0 #08080a, 0 4px 8px rgb(0 0 0 / 0.45); }
+  50% { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 2px 0 #08080a, 0 0 0 1px rgb(255 85 0 / 0.6), 0 0 18px rgb(255 85 0 / 0.35); }
+}
+
+@keyframes claim-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(157 78 221 / 0.55), 0 10px 30px rgb(123 44 191 / 0.45); }
+  50% { box-shadow: 0 0 0 12px rgb(157 78 221 / 0), 0 10px 40px rgb(123 44 191 / 0.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
