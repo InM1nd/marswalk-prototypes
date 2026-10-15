@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Pitch demo: the mini beat widget (/yamaha-beats/mini/) embedded in a mock product page via a plain iframe. -->
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SQ-16 Groovebox · Produktseite (Demo)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1a1a1a; background: #f4f4f2; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: #fff; border-bottom: 1px solid #e3e3e0; font-size: 14px; }
+    nav b { letter-spacing: 0.2em; }
+    .hero { background: #0b0b0d url(og.jpg) center / cover; aspect-ratio: 1200 / 630; max-height: 420px; width: 100%; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 32px; }
+    h1 { margin: 0 0 8px; font-size: clamp(26px, 5vw, 40px); }
+    p { margin: 0; line-height: 1.55; color: #555; }
+    .try { display: grid; gap: 24px; align-items: center; }
+    .try iframe { width: 100%; max-width: 520px; height: 700px; border: 0; border-radius: 20px; background: #0b0b0d; justify-self: center; box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.5); }
+    .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #7b2cbf; margin-bottom: 8px; }
+    @media (min-width: 900px) { .try { grid-template-columns: 1fr 520px; } }
+  </style>
+</head>
+<body>
+  <nav><b>YAMAHA</b><span>Produkte · Musikproduktion · SQ-16</span></nav>
+  <div class="hero" role="img" aria-label="SQ-16 Groovebox"></div>
+  <div class="wrap">
+    <div>
+      <h1>SQ-16 Groovebox</h1>
+      <p>Kompakter Sequencer mit Drums, Bass und Synth. Überall dabei, sofort startklar.</p>
+    </div>
+    <section class="try">
+      <div>
+        <div class="kicker">Probier's direkt hier</div>
+        <h2 style="margin: 0 0 8px">So fühlt sich die SQ-16 an</h2>
+        <p>Wähle einen Vibe, tippe die Pads und dreh am Filter. Kein Download, kein Login.</p>
+      </div>
+      <iframe src="mini/" title="Beat-Baukasten" loading="lazy" allow="web-share; clipboard-write"></iframe>
+    </section>
+  </div>
+</body>
+</html>

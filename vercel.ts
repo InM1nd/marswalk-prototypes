@@ -14,6 +14,8 @@ export const config: VercelConfig = {
     { source: '/plinko/:path*', destination: '/plinko/index.html' },
     { source: '/catch/:path*', destination: '/catch/index.html' },
     { source: '/advent/:path*', destination: '/advent/index.html' },
+    // embeddable widget; without this, /yamaha-beats/mini (no slash) would fall through to the studio
+    { source: '/yamaha-beats/mini', destination: '/yamaha-beats/mini/index.html' },
     { source: '/yamaha-beats/:path*', destination: '/yamaha-beats/index.html' },
   ],
 };
