@@ -121,6 +121,9 @@ export const HAT_PATCHES: HatPatch[] = [
 /** In TRACKS order. */
 export const PATCHES = [LEAD_PATCHES, BASS_PATCHES, SNARE_PATCHES, HAT_PATCHES] as const;
 
+/** 80s PCM-style drum voices for the pocket drum machine (synthesized, no samples). */
+export type RxName = 'kick' | 'snare' | 'clap' | 'rim' | 'chat' | 'ohat' | 'tom' | 'cow';
+
 /** Knob bank values, all 0..1. */
 export interface Mix {
   reso: number;
@@ -386,11 +389,76 @@ export class YamahaAudioEngine {
   }
 
   /** Play any patch (not just the track's selected one) at an audio time. note is MIDI, used by lead and bass. */
-  playAt(kind: 'lead' | 'bass' | 'snare' | 'hat', patch: LeadPatch | BassPatch | SnarePatch | HatPatch, t: number, vel: number, note = 60) {
-    if (kind === 'lead') this.lead(t, [note], vel, patch as LeadPatch);
+  playAt(kind: 'lead' | 'bass' | 'snare' | 'hat' | 'rx', patch: LeadPatch | BassPatch | SnarePatch | HatPatch | RxName, t: number, vel: number, note = 60) {
+    if (kind === 'rx') this.rx(patch as RxName, t, vel);
+    else if (kind === 'lead') this.lead(t, [note], vel, patch as LeadPatch);
     else if (kind === 'bass') this.bass(t, note, vel, patch as BassPatch);
     else if (kind === 'snare') this.snare(t, vel, patch as SnarePatch);
     else this.hat(t, vel, patch as HatPatch);
+  }
+
+  /** Tight, punchy, slightly metallic drums in the spirit of early digital drum machines. Run through the crusher for 12-bit grit. */
+  private rx(name: RxName, t: number, vel: number) {
+    const ctx = this.ctx!;
+    const tone = (type: OscillatorType, f0: number, f1: number, drop: number, decay: number, gain: number) => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(f1, t + drop);
+      o.connect(this.env(t, gain * vel, decay, 0.001)).connect(this.bus);
+      o.start(t);
+      o.stop(t + decay + 0.05);
+    };
+    const noise = (type: BiquadFilterType, freq: number, q: number, decay: number, gain: number, at = t) => {
+      const n = ctx.createBufferSource();
+      n.buffer = this.noise;
+      const f = ctx.createBiquadFilter();
+      f.type = type;
+      f.frequency.value = freq;
+      f.Q.value = q;
+      n.connect(f).connect(this.env(at, gain * vel, decay, 0.001)).connect(this.bus);
+      n.start(at);
+      n.stop(at + decay + 0.05);
+    };
+    switch (name) {
+      case 'kick':
+        tone('sine', 165, 46, 0.07, 0.34, 1.95);
+        tone('triangle', 950, 120, 0.014, 0.03, 0.5);
+        break;
+      case 'snare':
+        tone('triangle', 235, 165, 0.05, 0.13, 0.22);
+        tone('sine', 350, 250, 0.04, 0.07, 0.1);
+        noise('highpass', 1500, 0.7, 0.2, 0.21);
+        break;
+      case 'clap':
+        [0, 0.011, 0.022].forEach((d) => noise('bandpass', 1200, 1.2, 0.014, 1.1, t + d));
+        noise('bandpass', 1200, 1.2, 0.17, 1.2, t + 0.033);
+        break;
+      case 'rim':
+        tone('square', 1750, 1650, 0.01, 0.02, 0.09);
+        tone('triangle', 520, 470, 0.01, 0.045, 0.24);
+        noise('bandpass', 3000, 1, 0.012, 0.13);
+        break;
+      case 'chat':
+        this.hat(t, vel, { ...HAT_PATCHES[0], gain: 0.22 });
+        break;
+      case 'ohat':
+        this.hat(t, vel, { ...HAT_PATCHES[1], gain: 0.17 });
+        break;
+      case 'tom':
+        tone('sine', 240, 115, 0.13, 0.4, 0.3);
+        noise('bandpass', 1800, 1, 0.02, 0.08);
+        break;
+      case 'cow': {
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 800;
+        bp.Q.value = 1;
+        bp.connect(this.env(t, 0.27 * vel, 0.3, 0.001)).connect(this.bus);
+        for (const f of [540, 800]) this.osc('square', f, t, t + 0.35, bp, 0, 0.5);
+        break;
+      }
+    }
   }
 
   /** Metronome tick straight to the master (skips the filter and FX), accented on the downbeat. */
@@ -404,7 +472,7 @@ export class YamahaAudioEngine {
   }
 
   /** Same, right now (finger pads). Unlocks audio on the first call. */
-  async hit(kind: 'lead' | 'bass' | 'snare' | 'hat', patch: LeadPatch | BassPatch | SnarePatch | HatPatch, vel: number, note = 60) {
+  async hit(kind: 'lead' | 'bass' | 'snare' | 'hat' | 'rx', patch: LeadPatch | BassPatch | SnarePatch | HatPatch | RxName, vel: number, note = 60) {
     await this.unlock();
     this.playAt(kind, patch, this.ctx!.currentTime + 0.005, vel, note);
   }
