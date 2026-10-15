@@ -14,7 +14,14 @@ export function unlockAudio(): void {
   if (c.state === 'suspended') void c.resume();
 }
 
-function tone(freq: number, duration: number, volume: number, type: OscillatorType = 'sine', delay = 0, slideTo?: number): void {
+function tone(
+  freq: number,
+  duration: number,
+  volume: number,
+  type: OscillatorType = 'sine',
+  delay = 0,
+  slideTo?: number,
+): void {
   const c = getCtx();
   const osc = c.createOscillator();
   const gain = c.createGain();
@@ -55,6 +62,11 @@ function burst(duration: number, volume: number, freq: number, q = 1): void {
 const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
 
 export const sfx = {
+  beat: (step: number) => {
+    const notes = [130.81, 164.81, 196, 164.81, 130.81, 196, 220, 196];
+    tone(notes[step % notes.length], 0.12, 0.028, 'triangle');
+    if (step % 2 === 0) tone(65.4, 0.08, 0.04, 'sine', 0, 40);
+  },
   catch: (combo = 1) => {
     const n = NOTES[Math.min(combo - 1, NOTES.length - 2)];
     tone(n, 0.09, 0.1, 'sine');
@@ -66,6 +78,8 @@ export const sfx = {
     tone(180, 0.32, 0.2, 'triangle', 0, 60);
     burst(0.22, 0.3, 600, 0.7);
   },
-  prize: () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.3, 0.12, 'triangle', i * 0.08)),
-  win: () => [659.25, 783.99, 987.77, 1318.51].forEach((f, i) => tone(f, 0.45, 0.1, 'sine', i * 0.11)),
+  prize: () =>
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.3, 0.12, 'triangle', i * 0.08)),
+  win: () =>
+    [659.25, 783.99, 987.77, 1318.51].forEach((f, i) => tone(f, 0.45, 0.1, 'sine', i * 0.11)),
 };

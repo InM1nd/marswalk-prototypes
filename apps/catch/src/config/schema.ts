@@ -24,9 +24,10 @@ export const CatchConfigSchema = z.object({
     badChanceEnd: z.number(),
     goldenChance: z.number(),
   }),
-  /** Reaching `threshold` points unlocks the prize; the round end then leads to the lead form. */
+  /** Target score ends the round immediately; minimumScore qualifies at time up. */
   prize: z.object({
     threshold: z.number(),
+    minimumScore: z.number().optional(),
     label: z.string(),
     title: z.string(),
     description: z.string(),

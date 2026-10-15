@@ -25,7 +25,7 @@ npm run build   # → dist/ (single Vercel static project)
 | `/scratch/lotto` | Scratch Lotto (match-3 grid) |
 | `/runner/` | Mini Runner |
 | `/plinko/` | 3D Plinko |
-| `/catch/` | Catch the Drop |
+| `/catch/` | dm Glückskorb — Black Friday Catcher (SVG products, combo, lives, demo bonus) |
 | `/advent/` | Advent Calendar (Next.js static export, Drei Austria pitch) |
 | `/yamaha-beats/` | Groovebox & step sequencer, pure Web Audio (Next.js static export, Yamaha Music Europe pitch) |
 

@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { CATCH_SLACK, CLASH_S, EDGE, FIELD_W, REACH_SPEED, SAFE_GAP, isBad, planDrop, spawnIntervalMs, type PlannedDrop } from './drops';
-import { lunchDemoConfig } from '../config/campaigns/lunchDemo';
+import {
+  CATCH_SLACK,
+  CLASH_S,
+  EDGE,
+  FIELD_W,
+  REACH_SPEED,
+  SAFE_GAP,
+  isBad,
+  planDrop,
+  spawnIntervalMs,
+  type PlannedDrop,
+} from './drops';
+import { dmBlackFridayConfig } from '../config/campaigns/dmBlackFriday';
 
 // Small seeded PRNG so a failure is reproducible.
 function mulberry32(seed: number) {
@@ -14,8 +25,8 @@ function mulberry32(seed: number) {
 
 describe('planDrop', () => {
   it('keeps every good drop reachable and never stacks a bad drop on a good one', () => {
-    const tuning = lunchDemoConfig.drop;
-    const duration = lunchDemoConfig.round.durationSeconds;
+    const tuning = dmBlackFridayConfig.drop;
+    const duration = dmBlackFridayConfig.round.durationSeconds;
     for (let seed = 1; seed <= 40; seed++) {
       const rand = mulberry32(seed);
       const all: PlannedDrop[] = [];
@@ -26,13 +37,16 @@ describe('planDrop', () => {
       const good = all.filter((d) => !isBad(d.kind)).sort((a, b) => a.arrival - b.arrival);
       for (let i = 1; i < good.length; i++) {
         const dt = good[i].arrival - good[i - 1].arrival;
-        expect(Math.abs(good[i].x - good[i - 1].x)).toBeLessThanOrEqual(REACH_SPEED * dt + CATCH_SLACK + 0.001);
+        expect(Math.abs(good[i].x - good[i - 1].x)).toBeLessThanOrEqual(
+          REACH_SPEED * dt + CATCH_SLACK + 0.001,
+        );
       }
       for (const g of good) {
         expect(g.x).toBeGreaterThanOrEqual(EDGE);
         expect(g.x).toBeLessThanOrEqual(FIELD_W - EDGE);
         for (const b of all.filter((d) => isBad(d.kind))) {
-          if (Math.abs(b.arrival - g.arrival) < CLASH_S) expect(Math.abs(b.x - g.x)).toBeGreaterThanOrEqual(SAFE_GAP);
+          if (Math.abs(b.arrival - g.arrival) < CLASH_S)
+            expect(Math.abs(b.x - g.x)).toBeGreaterThanOrEqual(SAFE_GAP);
         }
       }
     }

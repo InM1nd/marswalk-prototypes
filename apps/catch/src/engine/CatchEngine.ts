@@ -1,8 +1,27 @@
-import { Application, Container, Graphics, Sprite, Text, TilingSprite, type Texture } from 'pixi.js';
+import {
+  Application,
+  Container,
+  Graphics,
+  Sprite,
+  Text,
+  TilingSprite,
+  Texture,
+  CanvasSource,
+} from 'pixi.js';
 import type { CatchConfig } from '../config/schema';
 import { comboMultiplier, useGameStore } from '../store/gameStore';
 import * as art from './art';
-import { FIELD_W, isBad, planDrop, spawnIntervalMs, type DropKind, type PlannedDrop } from './drops';
+import { dmArt, dmBackdrop } from '../components/assets/DmAssets';
+import { styleAssetUrl, type AssetStyle } from '../components/assets/assetStyles';
+import {
+  FIELD_W,
+  POINTS,
+  isBad,
+  planDrop,
+  spawnIntervalMs,
+  type DropKind,
+  type PlannedDrop,
+} from './drops';
 import { sfx } from './sound';
 
 export interface CatchEngineOptions {
@@ -18,14 +37,13 @@ export interface CatchEngineOptions {
 const MIN_VIEW_H = 560;
 const MOUTH_LINE = 0.8;
 const SPAWN_Y = -40;
-const BAG_MIN_X = art.BAG_HALF_W - 2;
-const BAG_MAX_X = FIELD_W - art.BAG_HALF_W + 2;
+const BAG_MIN_X = 50;
+const BAG_MAX_X = FIELD_W - 50;
 /** Horizontal reach of the bag's mouth (half-width minus the rim, plus part of a drop). */
 const CATCH_RADIUS = 40;
 /** Touch drags move the bag by the finger's delta, slightly amplified so a thumb covers the field. */
 const DRAG_GAIN = 1.25;
 const KEY_SPEED = 420;
-const POINTS: Record<DropKind, number> = { burger: 10, pizza: 10, donut: 10, coin: 30, clock: -15 };
 const ATTRACT_EVERY_MS = 650;
 
 interface Drop {
@@ -46,13 +64,39 @@ interface Fx {
   grow: boolean;
 }
 
-type TextureKey = DropKind | 'bagBack' | 'bagFront' | 'glow' | 'redGlow' | 'sky' | 'horizon' | 'stars' | 'far' | 'mid' | 'roof';
+type TextureKey =
+  | DropKind
+  | 'bagBack'
+  | 'bagFront'
+  | 'glow'
+  | 'redGlow'
+  | 'sky'
+  | 'horizon'
+  | 'stars'
+  | 'far'
+  | 'mid'
+  | 'roof';
+
+const STYLE_KEYS = [
+  'balea',
+  'alverde',
+  'ebelin',
+  'coupon',
+  'bomb',
+  'box',
+  'bagBack',
+  'bagFront',
+] as const;
+type StyleTextures = Record<(typeof STYLE_KEYS)[number], Texture>;
 
 export class CatchEngine {
   private app: Application | null = null;
   private destroyed = false;
   private options: CatchEngineOptions;
   private textures: Texture[] = [];
+  private styleTextures = new Map<AssetStyle, StyleTextures>();
+  private styleRequest = 0;
+  private assetStyle: AssetStyle = 'svg';
   private tex!: Record<TextureKey, Texture>;
 
   private view = { w: FIELD_W, h: 640, mouthY: 512, scale: 1 };
@@ -85,6 +129,9 @@ export class CatchEngine {
   private clock = 0;
   private shake = 0;
   private flash = 0;
+  private musicBeat = 0;
+  private musicStep = 0;
+  private trailTimer = 0;
 
   constructor(options: CatchEngineOptions) {
     this.options = options;
@@ -107,7 +154,10 @@ export class CatchEngine {
     this.app = app;
     container.appendChild(app.canvas);
 
-    await Promise.all([this.loadArt(), document.fonts.load(`800 24px "${config.branding.fontFamily}"`).catch(() => undefined)]);
+    await Promise.all([
+      this.loadArt(),
+      document.fonts.load(`800 24px "${config.branding.fontFamily}"`).catch(() => undefined),
+    ]);
     if (this.destroyed) {
       for (const t of this.textures) t.destroy(true);
       this.textures = [];
@@ -132,64 +182,131 @@ export class CatchEngine {
   }
 
   private async loadArt(): Promise<void> {
-    const b = { primary: this.options.config.branding.primaryColor, secondary: this.options.config.branding.secondaryColor };
+    const b = {
+      primary: this.options.config.branding.primaryColor,
+      secondary: this.options.config.branding.secondaryColor,
+    };
     // Raster at the device scale so sprites stay crisp on retina; capped to bound GPU memory.
     const res = Math.min(3, Math.max(1.5, window.devicePixelRatio * 1.25));
     const entries: Record<TextureKey, [art.Art, number, boolean]> = {
-      burger: [art.burger(), res, false],
-      pizza: [art.pizza(), res, false],
-      donut: [art.donut(b), res, false],
-      coin: [art.coin(b), res, false],
-      clock: [art.clock(), res, false],
-      bagBack: [art.bagBack(b), res, false],
-      bagFront: [art.bagFront(b), res, false],
+      balea: [dmArt('balea'), res, false],
+      alverde: [dmArt('alverde'), res, false],
+      ebelin: [dmArt('ebelin'), res, false],
+      coupon: [dmArt('coupon'), res, false],
+      bomb: [dmArt('bomb'), res, false],
+      box: [dmArt('box'), res, false],
+      bagBack: [dmArt('basketBack'), res, false],
+      bagFront: [dmArt('basketFront'), res, false],
       glow: [art.glow(b.secondary), 1, false],
       redGlow: [art.glow('#ff3b3b'), 1, false],
-      sky: [art.sky(b), 1, false],
+      sky: [dmBackdrop('sky'), 1, false],
       horizon: [art.horizonGlow(b), 1, false],
       stars: [art.stars(), res, true],
-      far: [art.farCity(), res, true],
-      mid: [art.midCity(b), res, true],
-      roof: [art.roof(b), res, true],
+      far: [dmBackdrop('far'), res, true],
+      mid: [dmBackdrop('mid'), res, true],
+      roof: [dmBackdrop('roof'), res, true],
     };
     const keys = Object.keys(entries) as TextureKey[];
     const loaded = await Promise.all(keys.map((k) => art.svgTexture(...entries[k])));
     this.textures = loaded;
-    this.tex = Object.fromEntries(keys.map((k, i) => [k, loaded[i]])) as Record<TextureKey, Texture>;
+    this.tex = Object.fromEntries(keys.map((k, i) => [k, loaded[i]])) as Record<
+      TextureKey,
+      Texture
+    >;
+    this.styleTextures.set(
+      'svg',
+      Object.fromEntries(STYLE_KEYS.map((k) => [k, this.tex[k]])) as StyleTextures,
+    );
+  }
+
+  /** Replace only art, preserving the round, input, drops, score and timer. */
+  async setAssetStyle(style: AssetStyle): Promise<void> {
+    const request = ++this.styleRequest;
+    let textures = this.styleTextures.get(style);
+    if (!textures && style !== 'svg') {
+      const results = await Promise.allSettled(
+        STYLE_KEYS.map(async (key) => {
+          const kind = key === 'bagBack' ? 'basketBack' : key === 'bagFront' ? 'basketFront' : key;
+          const image = new Image();
+          image.src = styleAssetUrl(style, kind);
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          canvas.getContext('2d')!.drawImage(image, 0, 0);
+          return new Texture({ source: new CanvasSource({ resource: canvas, resolution: 3 }) });
+        }),
+      );
+      const loaded = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+      if (this.destroyed || loaded.length !== STYLE_KEYS.length) {
+        for (const texture of loaded) texture.destroy(true);
+        if (this.destroyed) return;
+        throw new Error('Asset style could not be loaded');
+      }
+      textures = {} as StyleTextures;
+      for (const [i, key] of STYLE_KEYS.entries()) textures[key] = loaded[i];
+      this.textures.push(...loaded);
+      this.styleTextures.set(style, textures);
+    }
+    if (this.destroyed || request !== this.styleRequest || !textures) return;
+    Object.assign(this.tex, textures);
+    (this.bagBack.children[0] as Sprite).texture = textures.bagBack;
+    (this.bagFront.children[0] as Sprite).texture = textures.bagFront;
+    for (const drop of this.drops)
+      (drop.view.children.at(-1) as Sprite).texture = textures[drop.plan.kind];
+    this.assetStyle = style;
   }
 
   private buildScene(): void {
     const app = this.app!;
     const t = this.tex;
-    const { branding } = this.options.config;
-
     this.sky = new Sprite(t.sky);
-    this.starfield = new TilingSprite({ texture: t.stars, width: FIELD_W, height: t.stars.height });
+    this.starfield = new TilingSprite({
+      texture: t.stars,
+      width: FIELD_W,
+      height: t.stars.height,
+    });
     this.horizon = new Sprite(t.horizon);
     this.horizon.anchor.set(0.5, 1);
-    this.far = new TilingSprite({ texture: t.far, width: FIELD_W, height: t.far.height });
-    this.mid = new TilingSprite({ texture: t.mid, width: FIELD_W, height: t.mid.height });
-    this.roof = new TilingSprite({ texture: t.roof, width: FIELD_W, height: t.roof.height });
+    this.far = new TilingSprite({
+      texture: t.far,
+      width: FIELD_W,
+      height: t.far.height,
+    });
+    this.mid = new TilingSprite({
+      texture: t.mid,
+      width: FIELD_W,
+      height: t.mid.height,
+    });
+    this.roof = new TilingSprite({
+      texture: t.roof,
+      width: FIELD_W,
+      height: t.roof.height,
+    });
 
     // Bag: origin at the centre of its open mouth.
-    const bagArt = art.bagBack({ primary: '#000', secondary: '#000' });
-    for (const [layer, tex] of [[this.bagBack, t.bagBack], [this.bagFront, t.bagFront]] as const) {
+    const bagArt = dmArt('basketBack');
+    for (const [layer, tex] of [
+      [this.bagBack, t.bagBack],
+      [this.bagFront, t.bagFront],
+    ] as const) {
       const sprite = new Sprite(tex);
       sprite.anchor.set(-bagArt.x / bagArt.w, -bagArt.y / bagArt.h);
       layer.addChild(sprite);
     }
-    const label = new Text({
-      text: branding.brandName,
-      style: { fontFamily: `"${branding.fontFamily}", system-ui, sans-serif`, fontWeight: '800', fontSize: 17, fill: '#ffffff', letterSpacing: 1 },
-      resolution: Math.min(window.devicePixelRatio, 2) * 2,
-    });
-    label.anchor.set(0.5);
-    label.position.set(0, 40);
-    this.bagFront.addChild(label);
 
     this.field.addChild(this.bagBack, this.dropLayer, this.bagFront, this.fxLayer);
     this.flashGfx.alpha = 0;
-    app.stage.addChild(this.sky, this.starfield, this.horizon, this.far, this.mid, this.roof, this.field, this.flashGfx);
+    app.stage.addChild(
+      this.sky,
+      this.starfield,
+      this.horizon,
+      this.far,
+      this.mid,
+      this.roof,
+      this.field,
+      this.flashGfx,
+    );
   }
 
   private onResize(): void {
@@ -233,7 +350,8 @@ export class CatchEngine {
     // Mouse: the bag follows the cursor. Touch: relative drag, so the thumb never hides the bag.
     if (e.pointerType === 'mouse') {
       const rect = this.app?.canvas.getBoundingClientRect();
-      if (rect && e.clientY >= rect.top && e.clientY <= rect.bottom) this.bagTarget = this.toFieldX(e.clientX);
+      if (rect && e.clientY >= rect.top && e.clientY <= rect.bottom)
+        this.bagTarget = this.toFieldX(e.clientX);
       return;
     }
     if (this.dragX === null) return;
@@ -268,6 +386,15 @@ export class CatchEngine {
     this.spawnTimer = 350;
     this.shake = 0;
     this.flash = 0;
+    this.musicBeat = 0;
+    this.musicStep = 0;
+    this.trailTimer = 0;
+    for (const f of this.fx) f.view.destroy();
+    this.fx = [];
+    this.bagX = FIELD_W / 2;
+    this.bagScale = { x: 1, y: 1 };
+    this.keys = { left: false, right: false };
+    this.dragX = null;
     for (const d of this.drops) d.view.destroy();
     this.drops = [];
     this.bagTarget = FIELD_W / 2;
@@ -279,15 +406,21 @@ export class CatchEngine {
     const { drop, round } = this.options.config;
     const progress = this.elapsed / round.durationSeconds;
     const plan = scored
-      ? planDrop(drop, this.elapsed, progress, this.view.mouthY - SPAWN_Y, this.drops.slice(-8).map((d) => d.plan))
+      ? planDrop(
+          drop,
+          this.elapsed,
+          progress,
+          this.view.mouthY - SPAWN_Y,
+          this.drops.slice(-8).map((d) => d.plan),
+        )
       : { ...planDrop(drop, 0, 0, 1, []), arrival: -1 };
 
     const view = new Container();
-    if (plan.kind === 'coin' || plan.kind === 'clock') {
-      const halo = new Sprite(plan.kind === 'coin' ? this.tex.glow : this.tex.redGlow);
+    if (plan.kind === 'coupon' || plan.kind === 'bomb') {
+      const halo = new Sprite(plan.kind === 'coupon' ? this.tex.glow : this.tex.redGlow);
       halo.anchor.set(0.5);
       halo.blendMode = 'add';
-      halo.scale.set(plan.kind === 'coin' ? 1.1 : 0.95);
+      halo.scale.set(plan.kind === 'coupon' ? 1.1 : 0.95);
       view.addChild(halo);
     }
     const face = new Sprite(this.tex[plan.kind]);
@@ -296,7 +429,12 @@ export class CatchEngine {
     view.position.set(plan.x, SPAWN_Y);
     view.rotation = (Math.random() - 0.5) * 0.6;
     this.dropLayer.addChild(view);
-    this.drops.push({ plan, y: SPAWN_Y, view, spin: (Math.random() - 0.5) * 2.4 });
+    this.drops.push({
+      plan,
+      y: SPAWN_Y,
+      view,
+      spin: (Math.random() - 0.5) * 2.4,
+    });
   }
 
   private onCatch(d: Drop): void {
@@ -304,14 +442,25 @@ export class CatchEngine {
     const { branding } = this.options.config;
     const y = this.view.mouthY - 6;
     if (isBad(d.plan.kind)) {
-      store.addScore(-Math.min(store.score, -POINTS.clock));
       store.resetCombo();
+      const damaged = d.plan.kind === 'bomb' ? store.loseLife() : store.slow();
+      if (!damaged) {
+        this.spawnFloat(d.plan.x, y - 30, 'GOD MODE · GESCHÜTZT', '#009FE3', 16);
+        this.burst(d.plan.x, y, 0x009fe3, 8);
+        return;
+      }
       this.shake = 10;
       this.flash = 0.35;
       this.flashGfx.tint = 0xff3b3b;
       this.bagScale = { x: 0.86, y: 1.12 };
       if (!store.muted) sfx.bad();
-      this.spawnFloat(d.plan.x, y - 30, `LATE! ${POINTS.clock}`, '#ff6b6b');
+      this.spawnFloat(
+        d.plan.x,
+        y - 30,
+        d.plan.kind === 'bomb' ? 'AUTSCH! −1 ♥' : 'UPS! LANGSAMER',
+        '#FF527B',
+        18,
+      );
       this.burst(d.plan.x, y, 0xff3b3b, 8);
       return;
     }
@@ -321,9 +470,21 @@ export class CatchEngine {
     const points = POINTS[d.plan.kind] * mult;
     store.addScore(points);
     this.bagScale = { x: 1.14, y: 0.86 };
-    if (!store.muted) (d.plan.kind === 'coin' ? sfx.golden : sfx.catch)(combo);
-    this.spawnFloat(d.plan.x, y - 30, mult > 1 ? `+${points} ×${mult}` : `+${points}`, branding.secondaryColor, d.plan.kind === 'coin' ? 26 : 20);
-    this.burst(d.plan.x, y, d.plan.kind === 'coin' ? 0xffffff : branding.secondaryColor, d.plan.kind === 'coin' ? 12 : 6);
+    if (!store.muted) (d.plan.kind === 'coupon' ? sfx.golden : sfx.catch)(combo);
+    this.spawnFloat(
+      d.plan.x,
+      y - 30,
+      d.plan.kind === 'coupon' ? `+${points} ★` : mult > 1 ? `+${points} ×2` : `+${points}`,
+      branding.secondaryColor,
+      d.plan.kind === 'coupon' ? 26 : 20,
+    );
+    this.burst(
+      d.plan.x,
+      y,
+      d.plan.kind === 'coupon' ? 0xffd100 : branding.secondaryColor,
+      mult > 1 ? 16 : 8,
+    );
+    if (combo === 5) this.spawnFloat(FIELD_W / 2, y - 110, '2× COMBO!', '#FF1E56', 30, 1.5);
     this.checkPrize();
   }
 
@@ -334,10 +495,17 @@ export class CatchEngine {
     this.flash = 0.25;
     this.flashGfx.tint = 0xffffff;
     if (!store.muted) sfx.prize();
-    this.spawnFloat(FIELD_W / 2, this.view.mouthY * 0.45, 'PRIZE UNLOCKED!', this.options.config.branding.secondaryColor, 30, 1.6);
+    store.setStatus('gameover');
   }
 
-  private spawnFloat(x: number, y: number, label: string, color: string, size = 20, life = 0.8): void {
+  private spawnFloat(
+    x: number,
+    y: number,
+    label: string,
+    color: string,
+    size = 20,
+    life = 0.8,
+  ): void {
     const { branding } = this.options.config;
     const view = new Text({
       text: label,
@@ -347,7 +515,12 @@ export class CatchEngine {
         fontWeight: '800',
         fill: color,
         stroke: { color: '#14070a', width: 4, join: 'round' },
-        dropShadow: { color: branding.primaryColor, alpha: 0.8, blur: 8, distance: 0 },
+        dropShadow: {
+          color: branding.primaryColor,
+          alpha: 0.8,
+          blur: 8,
+          distance: 0,
+        },
       },
       resolution: Math.min(window.devicePixelRatio, 2) * 1.5,
     });
@@ -368,7 +541,14 @@ export class CatchEngine {
       this.fxLayer.addChild(s);
       const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
       const v = 90 + Math.random() * 120;
-      this.fx.push({ view: s, life: 0.5, maxLife: 0.5, vx: Math.cos(a) * v, vy: Math.sin(a) * v, grow: false });
+      this.fx.push({
+        view: s,
+        life: 0.5,
+        maxLife: 0.5,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v,
+        grow: false,
+      });
     }
   }
 
@@ -389,6 +569,12 @@ export class CatchEngine {
         this.spawn(true);
         this.spawnTimer += spawnIntervalMs(drop, this.elapsed / round.durationSeconds);
       }
+      this.musicBeat -= dt;
+      const state = useGameStore.getState();
+      if (this.musicBeat <= 0) {
+        if (!state.muted) sfx.beat(this.musicStep++);
+        this.musicBeat = state.combo >= 5 ? 0.25 : 0.4;
+      }
     } else {
       // Idle / result: a slow decorative drizzle behind the overlay.
       this.spawnTimer -= dt * 1000;
@@ -402,29 +588,37 @@ export class CatchEngine {
     this.moveDrops(dt, playing);
     this.updateJuice(dt);
 
-    if (playing) {
+    if (playing && useGameStore.getState().status === 'playing') {
       useGameStore.getState().tickTime(dt);
       if (useGameStore.getState().timeLeft <= 0) {
         this.flash = 0.25;
         this.flashGfx.tint = 0xffffff;
         this.spawnTimer = ATTRACT_EVERY_MS;
-        useGameStore.getState().setStatus('gameover');
+        useGameStore
+          .getState()
+          .finishRound(
+            this.options.config.prize.minimumScore ?? this.options.config.prize.threshold,
+          );
       }
     }
   };
 
   private moveBag(dt: number): void {
+    const slow = useGameStore.getState().slowLeft > 0;
     const dir = Number(this.keys.right) - Number(this.keys.left);
-    if (dir) this.bagTarget += dir * KEY_SPEED * dt;
+    if (dir) this.bagTarget += dir * KEY_SPEED * dt * (slow ? 0.45 : 1);
     this.bagTarget = Math.min(BAG_MAX_X, Math.max(BAG_MIN_X, this.bagTarget));
     const prev = this.bagX;
-    this.bagX += (this.bagTarget - this.bagX) * Math.min(1, dt * 22);
+    this.bagX += (this.bagTarget - this.bagX) * Math.min(1, dt * (slow ? 4 : 22));
     const v = (this.bagX - prev) / Math.max(dt, 0.001);
     this.tilt += (Math.max(-0.22, Math.min(0.22, v * 0.0007)) - this.tilt) * Math.min(1, dt * 10);
   }
 
   private moveDrops(dt: number, playing: boolean): void {
     const mouth = this.view.mouthY;
+    this.trailTimer -= dt;
+    const trail = this.trailTimer <= 0;
+    if (trail) this.trailTimer = 0.13;
     for (let i = this.drops.length - 1; i >= 0; i--) {
       const d = this.drops[i];
       if (d.sink) {
@@ -439,18 +633,31 @@ export class CatchEngine {
       const prevY = d.y;
       d.y += d.plan.speed * dt;
       d.view.y = d.y;
-      if (d.plan.kind === 'clock') d.view.rotation = Math.sin(this.clock * 26) * 0.12;
-      else if (d.plan.kind === 'coin') d.view.children[1].scale.x = 0.5 + 0.5 * Math.abs(Math.cos(this.clock * 4 + d.plan.x));
-      else d.view.rotation += d.spin * dt;
+      if (d.plan.kind === 'bomb') d.view.rotation = Math.sin(this.clock * 26) * 0.12;
+      else if (d.plan.kind === 'coupon') {
+        d.view.rotation = Math.sin(this.clock * 3 + d.plan.x) * 0.2;
+        if (trail && d.y > 20 && d.y < mouth) this.burst(d.plan.x, d.y - 18, 0xffd100, 1);
+      } else d.view.rotation += d.spin * dt;
 
-      const scored = playing && d.plan.arrival >= 0;
-      if (scored && prevY < mouth && d.y >= mouth && Math.abs(d.plan.x - this.bagX) <= CATCH_RADIUS) {
+      const scored = playing && useGameStore.getState().status === 'playing' && d.plan.arrival >= 0;
+      if (
+        scored &&
+        prevY < mouth &&
+        d.y >= mouth &&
+        Math.abs(d.plan.x - this.bagX) <= CATCH_RADIUS
+      ) {
         this.onCatch(d);
         if (isBad(d.plan.kind)) this.removeDrop(i);
         else d.sink = { dx: d.plan.x - this.bagX };
         continue;
       }
-      if (scored && prevY < mouth && d.y >= mouth && !isBad(d.plan.kind) && useGameStore.getState().combo > 0) {
+      if (
+        scored &&
+        prevY < mouth &&
+        d.y >= mouth &&
+        !isBad(d.plan.kind) &&
+        useGameStore.getState().combo > 0
+      ) {
         useGameStore.getState().resetCombo();
         if (!useGameStore.getState().muted) sfx.miss();
       }
@@ -508,15 +715,23 @@ export class CatchEngine {
   /** Dev-only probe for tuning bots (see window.__catch). */
   debugState() {
     return {
+      assetStyle: this.assetStyle,
       bagX: this.bagX,
       view: this.view,
       fps: this.app?.ticker.FPS,
-      drops: this.drops.map((d) => ({ kind: d.plan.kind, x: d.plan.x, y: d.y, arrival: d.plan.arrival })),
+      drops: this.drops.map((d) => ({
+        kind: d.plan.kind,
+        x: d.plan.x,
+        y: d.y,
+        arrival: d.plan.arrival,
+      })),
     };
   }
 
   destroy(): void {
     this.destroyed = true;
+    this.styleRequest++;
+    this.styleTextures.clear();
     this.app?.canvas.removeEventListener('pointerdown', this.onPointerDown);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
