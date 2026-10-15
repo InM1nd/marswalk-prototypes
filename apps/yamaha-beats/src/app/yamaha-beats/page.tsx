@@ -9,6 +9,7 @@ import { Knob } from './components/Knobs';
 import { PerformFX, type Fx } from './components/PerformFX';
 import { PRESETS, PresetSelector, decodeGroove, encodeGroove, patternFrom, rollGroove } from './components/PresetSelector';
 import { LivePads, SequencerGrid } from './components/SequencerGrid';
+import { VersionNav } from './components/VersionNav';
 import { YamahaRewardModal } from './components/YamahaRewardModal';
 import { copyText } from './lib/copyText';
 import { canRecordVideo, recordBeatVideo } from './lib/video-export';
@@ -250,10 +251,11 @@ export default function YamahaBeatsPage() {
     <div className="min-h-dvh pb-36 lg:pb-4">
       {/* marswalk pitch bar: presenter-only controls */}
       <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0b0d]/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-1.5 text-xs">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-1.5 text-xs">
           <span className="font-mono text-[10px] tracking-[0.15em] text-white/40 uppercase">
             marswalk <span className="hidden sm:inline">Pitch Bar</span>
           </span>
+          <VersionNav />
           <button type="button" onClick={demoUnlock} className="ml-auto rounded-lg border border-white/15 px-2.5 py-1 text-white/80 hover:border-white/40 hover:text-white">
             Demo <span className="hidden sm:inline">Instant </span>Unlock
           </button>

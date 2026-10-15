@@ -27,7 +27,10 @@ npm run build   # → dist/ (single Vercel static project)
 | `/plinko/` | 3D Plinko |
 | `/catch/` | dm Glückskorb — Black Friday Catcher (SVG products, combo, lives, demo bonus) |
 | `/advent/` | Advent Calendar (Next.js static export, Drei Austria pitch) |
-| `/yamaha-beats/` | Groovebox & step sequencer, pure Web Audio (Next.js static export, Yamaha Music Europe pitch) |
+| `/yamaha-beats/` | Groovebox studio (Yamaha Music Europe pitch) |
+| `/yamaha-beats/mini/` | One-card sequencer for a product-page iframe |
+| `/yamaha-beats/drums/` | Pocket drum machine: tap pads, record a loop |
+| `/yamaha-beats/embed-demo.html` | Mock product page with Mini and Drums embedded |
 
 Planned (not built): 3D Configurator, Personality Quiz.
 

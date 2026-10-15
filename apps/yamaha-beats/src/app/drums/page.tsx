@@ -9,6 +9,7 @@
 import { Check, ChevronDown, Eraser, ExternalLink, Metronome, Play, Share2, Square, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HardwareChassis, OledDisplay } from '../yamaha-beats/components/HardwareChassis';
+import { VersionNav } from '../yamaha-beats/components/VersionNav';
 import { Knob } from '../yamaha-beats/components/Knobs';
 import { copyText } from '../yamaha-beats/lib/copyText';
 import {
@@ -361,6 +362,8 @@ export default function DrumMachine() {
   const chip = (on: boolean) => `keycap flex items-center gap-1.5 px-2 py-2 text-left text-[12.5px] font-semibold ${on ? 'text-white' : 'text-white/55'}`;
 
   return (
+    <>
+    <VersionNav sticky />
     <main className="mx-auto max-w-[520px] p-3 sm:p-5">
       <HardwareChassis>
         <div className="grid gap-3">
@@ -549,5 +552,6 @@ export default function DrumMachine() {
         </div>
       </HardwareChassis>
     </main>
+    </>
   );
 }

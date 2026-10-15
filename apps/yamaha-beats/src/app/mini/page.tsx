@@ -8,6 +8,7 @@ import { Check, Dice5, ExternalLink, Play, Share2, Square, Trash2 } from 'lucide
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PRESETS, encodeGroove, patternFrom, rollGroove } from '../yamaha-beats/components/PresetSelector';
 import { copyText } from '../yamaha-beats/lib/copyText';
+import { VersionNav } from '../yamaha-beats/components/VersionNav';
 import { PATCHES, TRACKS, YamahaAudioEngine, cutoffFromNorm, type Pattern } from '../yamaha-beats/lib/yamaha-audio-engine';
 
 const SHOWN = 8;
@@ -105,6 +106,8 @@ export default function MiniBeat() {
   const head = step < 0 ? -1 : step % SHOWN;
 
   return (
+    <>
+    <VersionNav sticky />
     <main className="mx-auto flex max-w-[520px] flex-col gap-4 p-4 sm:p-6">
       <header className="flex items-center justify-between gap-3">
         <div>
@@ -207,6 +210,7 @@ export default function MiniBeat() {
         </a>
       </footer>
     </main>
+    </>
   );
 }
 

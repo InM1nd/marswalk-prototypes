@@ -8,7 +8,10 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1a1a1a; background: #f4f4f2; }
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: #fff; border-bottom: 1px solid #e3e3e0; font-size: 14px; }
+    nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 20px; background: #fff; border-bottom: 1px solid #e3e3e0; font-size: 14px; }
+    nav .vers { display: flex; gap: 6px; }
+    nav .vers a { padding: 4px 10px; border-radius: 999px; text-decoration: none; color: #444; background: #f0f0ee; font-size: 12px; font-weight: 700; }
+    nav .vers a[aria-current="page"] { background: #111; color: #fff; }
     nav b { letter-spacing: 0.2em; }
     .hero { background: #0b0b0d url(og.jpg) center / cover; aspect-ratio: 1200 / 630; max-height: 420px; width: 100%; }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 32px; }
@@ -21,7 +24,15 @@
   </style>
 </head>
 <body>
-  <nav><b>YAMAHA</b><span>Produkte · Musikproduktion · SQ-16</span></nav>
+  <nav>
+    <b>YAMAHA</b>
+    <span class="vers">
+      <a href="./">Studio</a>
+      <a href="mini/">Mini</a>
+      <a href="drums/">Drums</a>
+      <a href="embed-demo.html" aria-current="page">Embed</a>
+    </span>
+  </nav>
   <div class="hero" role="img" aria-label="SQ-16 Groovebox"></div>
   <div class="wrap">
     <div>
