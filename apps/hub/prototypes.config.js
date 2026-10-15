@@ -95,6 +95,18 @@ window.PROTOTYPES = [
     url: '/advent/',
   },
   {
+    id: 'yamaha-beats',
+    image: 'previews/yamaha-beats.webp',
+    accent: '#9d4edd',
+    icon: '🎛️',
+    title: 'Beat Studio',
+    subtitle: 'Groovebox · Yamaha Music Europe',
+    description: '16-step groovebox, 26 live-synthesized voices, 8 genre kits, hold-to-play FX and finger pads. Exports a 9:16 beat video for Stories; groove meter unlocks a voucher.',
+    stack: ['Next.js', 'Web Audio', 'framer-motion'],
+    status: 'live',
+    url: '/yamaha-beats/',
+  },
+  {
     id: 'configurator',
     accent: '#ff8f1f',
     icon: '🧩',
