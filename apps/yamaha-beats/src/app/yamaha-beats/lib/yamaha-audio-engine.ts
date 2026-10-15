@@ -124,6 +124,17 @@ export const PATCHES = [LEAD_PATCHES, BASS_PATCHES, SNARE_PATCHES, HAT_PATCHES] 
 /** 80s PCM-style drum voices for the pocket drum machine (synthesized, no samples). */
 export type RxName = 'kick' | 'snare' | 'clap' | 'rim' | 'chat' | 'ohat' | 'tom' | 'cow';
 
+/** Sound-set tweaks for the drum voices: tuning and length of the body, snap of the noise, hat length. */
+export interface RxKit {
+  kickTune: number;
+  kickDecay: number;
+  snareTune: number;
+  snareSnap: number;
+  hatDecay: number;
+  tomTune: number;
+}
+export const CLASSIC_KIT: RxKit = { kickTune: 1, kickDecay: 1, snareTune: 1, snareSnap: 1, hatDecay: 1, tomTune: 1 };
+
 /** Knob bank values, all 0..1. */
 export interface Mix {
   reso: number;
@@ -149,6 +160,8 @@ export class YamahaAudioEngine {
   /** Selected patch index per track (into PATCHES). */
   patches = [0, 0, 0, 0];
   playing = false;
+  /** Sound set used by the 'rx' drum voices. */
+  rxKit: RxKit = CLASSIC_KIT;
   /** Tracks silenced by the DROP effect (sequencer only; live pads still play). */
   muted = [false, false, false, false];
   /** Fires on the audio clock (not the scheduling clock) with the step that is sounding; -1 on stop. */
@@ -389,10 +402,11 @@ export class YamahaAudioEngine {
   }
 
   /** Play any patch (not just the track's selected one) at an audio time. note is MIDI, used by lead and bass. */
-  playAt(kind: 'lead' | 'bass' | 'snare' | 'hat' | 'rx', patch: LeadPatch | BassPatch | SnarePatch | HatPatch | RxName, t: number, vel: number, note = 60) {
+  playAt(kind: 'lead' | 'bass' | 'snare' | 'hat' | 'rx', patch: LeadPatch | BassPatch | SnarePatch | HatPatch | RxName, t: number, vel: number, note: number | number[] = 60) {
+    const first = Array.isArray(note) ? note[0] : note;
     if (kind === 'rx') this.rx(patch as RxName, t, vel);
-    else if (kind === 'lead') this.lead(t, [note], vel, patch as LeadPatch);
-    else if (kind === 'bass') this.bass(t, note, vel, patch as BassPatch);
+    else if (kind === 'lead') this.lead(t, Array.isArray(note) ? note : [note], vel, patch as LeadPatch);
+    else if (kind === 'bass') this.bass(t, first, vel, patch as BassPatch);
     else if (kind === 'snare') this.snare(t, vel, patch as SnarePatch);
     else this.hat(t, vel, patch as HatPatch);
   }
@@ -400,6 +414,7 @@ export class YamahaAudioEngine {
   /** Tight, punchy, slightly metallic drums in the spirit of early digital drum machines. Run through the crusher for 12-bit grit. */
   private rx(name: RxName, t: number, vel: number) {
     const ctx = this.ctx!;
+    const k = this.rxKit;
     const tone = (type: OscillatorType, f0: number, f1: number, drop: number, decay: number, gain: number) => {
       const o = ctx.createOscillator();
       o.type = type;
@@ -422,13 +437,13 @@ export class YamahaAudioEngine {
     };
     switch (name) {
       case 'kick':
-        tone('sine', 165, 46, 0.07, 0.34, 1.95);
+        tone('sine', 165 * k.kickTune, 46 * k.kickTune, 0.07, 0.34 * k.kickDecay, 1.95);
         tone('triangle', 950, 120, 0.014, 0.03, 0.5);
         break;
       case 'snare':
-        tone('triangle', 235, 165, 0.05, 0.13, 0.22);
-        tone('sine', 350, 250, 0.04, 0.07, 0.1);
-        noise('highpass', 1500, 0.7, 0.2, 0.21);
+        tone('triangle', 235 * k.snareTune, 165 * k.snareTune, 0.05, 0.13, 0.22);
+        tone('sine', 350 * k.snareTune, 250 * k.snareTune, 0.04, 0.07, 0.1);
+        noise('highpass', 1500, 0.7, 0.2, 0.21 * k.snareSnap);
         break;
       case 'clap':
         [0, 0.011, 0.022].forEach((d) => noise('bandpass', 1200, 1.2, 0.014, 1.1, t + d));
@@ -440,13 +455,13 @@ export class YamahaAudioEngine {
         noise('bandpass', 3000, 1, 0.012, 0.13);
         break;
       case 'chat':
-        this.hat(t, vel, { ...HAT_PATCHES[0], gain: 0.22 });
+        this.hat(t, vel, { ...HAT_PATCHES[0], gain: 0.22, decay: HAT_PATCHES[0].decay * k.hatDecay });
         break;
       case 'ohat':
-        this.hat(t, vel, { ...HAT_PATCHES[1], gain: 0.17 });
+        this.hat(t, vel, { ...HAT_PATCHES[1], gain: 0.17, decay: HAT_PATCHES[1].decay * k.hatDecay });
         break;
       case 'tom':
-        tone('sine', 240, 115, 0.13, 0.4, 0.3);
+        tone('sine', 240 * k.tomTune, 115 * k.tomTune, 0.13, 0.4, 0.3);
         noise('bandpass', 1800, 1, 0.02, 0.08);
         break;
       case 'cow': {
