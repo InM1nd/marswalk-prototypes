@@ -1,134 +1,159 @@
 'use client';
 
-// Pocket drum machine for a product page: tap 8 pads to play, hit REC to loop what you tap.
+// Pocket drum machine for a product page. Pick one of four ready-made beats, tap the pads on top,
+// hit REC to loop what you play. The bottom pad row are notes of a pentatonic scale, so any tap sounds musical.
 // Taps are quantized to 16th notes of a one-bar loop and replayed on the engine's audio clock.
 // Same embed rules as /mini: one card, no fixed bars, no full-screen modals.
 
-import { Check, Eraser, ExternalLink, Play, Share2, Sparkles, Square, Undo2 } from 'lucide-react';
+import { Check, Eraser, ExternalLink, Metronome, Play, Share2, Square, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { HardwareChassis, OledDisplay } from '../yamaha-beats/components/HardwareChassis';
+import { Knob } from '../yamaha-beats/components/Knobs';
 import { copyText } from '../yamaha-beats/lib/copyText';
 import {
-  BASS_PATCHES, HAT_PATCHES, LEAD_PATCHES, SNARE_PATCHES, STEPS, YamahaAudioEngine,
+  DEFAULT_MIX, HAT_PATCHES, LEAD_PATCHES, SNARE_PATCHES, STEPS, YamahaAudioEngine, cutoffFromNorm,
   type BassPatch, type HatPatch, type LeadPatch, type SnarePatch,
 } from '../yamaha-beats/lib/yamaha-audio-engine';
 
 const PRODUCT_URL = 'https://europe.yamaha.com/de/';
+const BPM_MIN = 70;
+const BPM_MAX = 160;
 
-type PadVoice =
+type Voice =
   | { kind: 'lead'; patch: LeadPatch; note: number }
   | { kind: 'bass'; patch: BassPatch; note: number }
   | { kind: 'snare'; patch: SnarePatch; note: number }
   | { kind: 'hat'; patch: HatPatch; note: number };
+interface Pad {
+  label: string;
+  color: string;
+  voice: Voice;
+}
 
 const KICK: BassPatch = { name: 'KICK', wave: 'sine', detune: [0], bodyGain: 0, filterPeak: 200, filterDecay: 0.1, q: 1, punch: 6, punchDecay: 0.05, sub: 1.3, decay: 0.3 };
 const SOFT_KICK: BassPatch = { ...KICK, punch: 3, decay: 0.24, sub: 1 };
 const LONG_KICK: BassPatch = { ...KICK, punch: 4.5, punchDecay: 0.08, decay: 0.55 };
+const STAB: LeadPatch = { ...LEAD_PATCHES[6], decay: 0.26 };
 
-// Same 8 slots in every kit so a thumb learns the layout: kick, snare, clap, hat / open, perc, bass, lead.
-const PADS = [
-  { label: 'KICK', color: '#FF5500' },
-  { label: 'SNARE', color: '#00F5D4' },
-  { label: 'CLAP', color: '#FF4D9D' },
-  { label: 'HAT', color: '#10B981' },
-  { label: 'OPEN', color: '#F5B700' },
-  { label: 'PERC', color: '#4D8DFF' },
-  { label: 'BASS', color: '#9D4EDD' },
-  { label: 'LEAD', color: '#D6B8F5' },
-] as const;
+const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const noteName = (n: number) => `${NAMES[n % 12]}${Math.floor(n / 12) - 1}`;
+const NOTE_COLORS = ['#9D4EDD', '#C06BFF', '#FF4D9D', '#4D8DFF'];
 
-interface Kit {
+interface Beat {
   name: string;
+  hint: string;
   bpm: number;
   swing: number;
-  voices: PadVoice[];
-  /** Starter groove: steps per pad. */
+  drums: { label: string; color: string; voice: Voice }[];
+  lead: LeadPatch;
+  /** Four scale notes, low to high: any order sounds right. */
+  notes: number[];
+  /** Starter loop: steps per pad (4 drums, then 4 notes). */
   groove: number[][];
 }
 
-const KITS: Kit[] = [
+const DRUM_COLORS = ['#FF5500', '#00F5D4', '#10B981', '#F5B700'];
+const drums = (kick: BassPatch, snare: [string, number], hat: number, fourth: [string, 'hat' | 'snare', number]): Beat['drums'] => [
+  { label: 'KICK', color: DRUM_COLORS[0], voice: { kind: 'bass', patch: kick, note: 36 } },
+  { label: snare[0], color: DRUM_COLORS[1], voice: { kind: 'snare', patch: SNARE_PATCHES[snare[1]], note: 0 } },
+  { label: 'HAT', color: DRUM_COLORS[2], voice: { kind: 'hat', patch: HAT_PATCHES[hat], note: 0 } },
+  { label: fourth[0], color: DRUM_COLORS[3], voice: fourth[1] === 'hat' ? { kind: 'hat', patch: HAT_PATCHES[fourth[2]], note: 0 } : { kind: 'snare', patch: SNARE_PATCHES[fourth[2]], note: 0 } },
+];
+
+// Melody steps are written as [step, noteIndex]; expanded to the 4 note pads below.
+const melody = (m: [number, number][]) => [0, 1, 2, 3].map((n) => m.filter(([, i]) => i === n).map(([s]) => s));
+
+const BEATS: Beat[] = [
   {
     name: 'Trap',
+    hint: 'C-Moll, Glocken',
     bpm: 140,
     swing: 0,
-    voices: [
-      { kind: 'bass', patch: LONG_KICK, note: 36 },
-      { kind: 'snare', patch: SNARE_PATCHES[0], note: 0 },
-      { kind: 'snare', patch: SNARE_PATCHES[1], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[0], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[1], note: 0 },
-      { kind: 'snare', patch: SNARE_PATCHES[2], note: 0 },
-      { kind: 'bass', patch: BASS_PATCHES[3], note: 33 },
-      { kind: 'lead', patch: LEAD_PATCHES[1], note: 79 },
-    ],
-    groove: [[0, 3, 6, 10], [], [8], [0, 2, 4, 6, 8, 10, 11, 12, 14, 15], [14], [], [0, 10], []],
+    drums: drums(LONG_KICK, ['CLAP', 1], 0, ['OPEN', 'hat', 1]),
+    lead: LEAD_PATCHES[1],
+    notes: [72, 75, 79, 82],
+    groove: [[0, 3, 6, 10], [8], [0, 2, 4, 6, 8, 10, 11, 12, 14, 15], [14], ...melody([[0, 3], [3, 2], [6, 1], [8, 0], [11, 1], [14, 2]])],
   },
   {
     name: 'House',
+    hint: 'A-Moll, Synth-Stabs',
     bpm: 124,
     swing: 0.12,
-    voices: [
-      { kind: 'bass', patch: KICK, note: 36 },
-      { kind: 'snare', patch: SNARE_PATCHES[0], note: 0 },
-      { kind: 'snare', patch: SNARE_PATCHES[1], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[0], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[1], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[2], note: 0 },
-      { kind: 'bass', patch: BASS_PATCHES[1], note: 33 },
-      { kind: 'lead', patch: LEAD_PATCHES[0], note: 69 },
-    ],
-    groove: [[0, 4, 8, 12], [], [4, 12], [0, 2, 4, 6, 8, 10, 12, 14], [2, 6, 10, 14], [], [2, 6, 10, 14], []],
+    drums: drums(KICK, ['CLAP', 1], 0, ['OPEN', 'hat', 1]),
+    lead: STAB,
+    notes: [57, 60, 64, 67],
+    groove: [[0, 4, 8, 12], [4, 12], [0, 2, 4, 6, 8, 10, 12, 14], [2, 6, 10, 14], ...melody([[2, 2], [6, 3], [10, 2], [11, 1], [14, 0]])],
   },
   {
     name: 'Lo-Fi',
+    hint: 'C-Moll7, E-Piano',
     bpm: 88,
     swing: 0.3,
-    voices: [
-      { kind: 'bass', patch: SOFT_KICK, note: 38 },
-      { kind: 'snare', patch: SNARE_PATCHES[3], note: 0 },
-      { kind: 'snare', patch: SNARE_PATCHES[1], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[2], note: 0 },
-      { kind: 'hat', patch: HAT_PATCHES[3], note: 0 },
-      { kind: 'snare', patch: SNARE_PATCHES[2], note: 0 },
-      { kind: 'bass', patch: BASS_PATCHES[0], note: 38 },
-      { kind: 'lead', patch: LEAD_PATCHES[4], note: 72 },
-    ],
-    groove: [[0, 7, 10], [4, 12], [], [0, 2, 4, 6, 8, 10, 12, 14], [], [3, 11], [0, 10], []],
+    drums: drums(SOFT_KICK, ['SNARE', 3], 2, ['RIM', 'snare', 2]),
+    lead: LEAD_PATCHES[0],
+    notes: [60, 63, 67, 70],
+    groove: [[0, 7, 10], [4, 12], [0, 2, 4, 6, 8, 10, 12, 14], [3, 11], ...melody([[0, 2], [3, 3], [7, 1], [10, 2], [12, 0]])],
+  },
+  {
+    name: 'Afro',
+    hint: 'F-Moll, Marimba',
+    bpm: 122,
+    swing: 0.12,
+    drums: drums(KICK, ['CLAP', 2], 2, ['OPEN', 'hat', 1]),
+    lead: LEAD_PATCHES[4],
+    notes: [65, 68, 70, 72],
+    groove: [[0, 3, 6, 10, 13], [4, 12], [0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15], [14], ...melody([[0, 1], [3, 2], [6, 0], [10, 3], [12, 2], [14, 1]])],
   },
 ];
 
-type Hits = boolean[][]; // [pad][step]
-const emptyHits = (): Hits => PADS.map(() => Array<boolean>(STEPS).fill(false));
-const fromGroove = (g: number[][]): Hits => PADS.map((_, p) => Array.from({ length: STEPS }, (_, s) => g[p].includes(s)));
+const padsOf = (b: Beat): Pad[] => [
+  ...b.drums,
+  ...b.notes.map((n, i): Pad => ({ label: noteName(n), color: NOTE_COLORS[i], voice: { kind: 'lead', patch: b.lead, note: n } })),
+];
+const ALL_PADS = BEATS.map(padsOf);
+const PAD_COUNT = 8;
 
-// ?d=<kit>-<bpm>-<8 x 4 hex chars>, one 16-bit mask per pad (MSB = step 1)
-const encode = (kit: number, bpm: number, h: Hits) =>
-  `${kit}-${bpm}-${h.map((row) => row.reduce((n, on, i) => n | (on ? 1 << (STEPS - 1 - i) : 0), 0).toString(16).padStart(4, '0')).join('')}`;
+type Hits = boolean[][]; // [pad][step]
+const emptyHits = (): Hits => Array.from({ length: PAD_COUNT }, () => Array<boolean>(STEPS).fill(false));
+const fromGroove = (g: number[][]): Hits => g.map((steps) => Array.from({ length: STEPS }, (_, s) => steps.includes(s)));
+
+// ?d=<beat>-<bpm>-<8 x 4 hex chars>, one 16-bit mask per pad (MSB = step 1)
+const encode = (beat: number, bpm: number, h: Hits) =>
+  `${beat}-${bpm}-${h.map((row) => row.reduce((n, on, i) => n | (on ? 1 << (STEPS - 1 - i) : 0), 0).toString(16).padStart(4, '0')).join('')}`;
 const decode = (code: string | null) => {
   const m = code?.match(/^(\d)-(\d{2,3})-([0-9a-f]{32})$/i);
-  if (!m || Number(m[1]) >= KITS.length) return null;
-  const hits = PADS.map((_, p) => {
+  if (!m || Number(m[1]) >= BEATS.length) return null;
+  const hits = Array.from({ length: PAD_COUNT }, (_, p) => {
     const n = parseInt(m[3].slice(p * 4, p * 4 + 4), 16);
     return Array.from({ length: STEPS }, (_, i) => !!(n & (1 << (STEPS - 1 - i))));
   });
-  return { kit: Number(m[1]), bpm: Math.min(160, Math.max(70, Number(m[2]))), hits };
+  return { beat: Number(m[1]), bpm: Math.min(BPM_MAX, Math.max(BPM_MIN, Number(m[2]))), hits };
 };
 
 export default function DrumMachine() {
   const engine = useMemo(() => new YamahaAudioEngine(), []);
-  const [kitIdx, setKitIdx] = useState(0);
-  const [bpm, setBpm] = useState(KITS[0].bpm);
+  const [beatIdx, setBeatIdx] = useState(0);
+  const [bpm, setBpm] = useState(BEATS[0].bpm);
+  const [swing, setSwing] = useState(BEATS[0].swing);
+  const [filt, setFilt] = useState(1);
+  const [space, setSpace] = useState(DEFAULT_MIX.space);
   const [hits, setHits] = useState<Hits>(emptyHits);
   const [playing, setPlaying] = useState(false);
   const [rec, setRec] = useState(false);
+  const [metro, setMetro] = useState(false);
   const [step, setStep] = useState(-1);
-  const [lit, setLit] = useState<number[]>(() => PADS.map(() => 0));
+  const [lit, setLit] = useState<number[]>(() => Array(PAD_COUNT).fill(0));
   const [copied, setCopied] = useState(false);
 
   // refs mirror state for the audio-clock callbacks and pointer handlers
   const hitsRef = useRef(hits);
-  const kitRef = useRef(KITS[0]);
+  const padsRef = useRef(ALL_PADS[0]);
   const recRef = useRef(false);
+  const metroRef = useRef(false);
   const lastTaps = useRef<[number, number][]>([]); // [pad, step] in recording order, for UNDO
+
+  const pads = ALL_PADS[beatIdx];
+  const beat = BEATS[beatIdx];
 
   const commit = useCallback((next: Hits) => {
     hitsRef.current = next;
@@ -136,12 +161,17 @@ export default function DrumMachine() {
   }, []);
 
   useEffect(() => {
-    kitRef.current = KITS[kitIdx];
-    engine.swing = KITS[kitIdx].swing;
-  }, [engine, kitIdx]);
+    padsRef.current = pads;
+  }, [pads]);
   useEffect(() => {
     engine.bpm = bpm;
-  }, [engine, bpm]);
+    engine.swing = swing;
+  }, [engine, bpm, swing]);
+  useEffect(() => {
+    metroRef.current = metro;
+  }, [metro]);
+  useEffect(() => engine.setCutoff(cutoffFromNorm(filt)), [engine, filt]);
+  useEffect(() => engine.setMix({ ...DEFAULT_MIX, space }), [engine, space]);
 
   const flash = useCallback((pad: number) => {
     setLit((l) => l.map((v, i) => (i === pad ? v + 1 : v)));
@@ -149,12 +179,13 @@ export default function DrumMachine() {
   }, []);
 
   useEffect(() => {
-    // the engine sequences nothing itself; every drum comes from the hook below
+    // the engine sequences nothing itself; every sound comes from the hook below
     engine.onSchedule = (s, t) => {
+      if (metroRef.current && s % 4 === 0) engine.click(t, s === 0);
       hitsRef.current.forEach((row, p) => {
         if (!row[s]) return;
-        const v = kitRef.current.voices[p];
-        engine.playAt(v.kind, v.patch, t, 0.95, v.note);
+        const { kind, patch, note } = padsRef.current[p].voice;
+        engine.playAt(kind, patch, t, 0.95, note);
       });
     };
     engine.onStep = (s) => {
@@ -168,8 +199,9 @@ export default function DrumMachine() {
   useEffect(() => {
     const shared = decode(new URLSearchParams(window.location.search).get('d'));
     if (!shared) return;
-    setKitIdx(shared.kit);
+    setBeatIdx(shared.beat);
     setBpm(shared.bpm);
+    setSwing(BEATS[shared.beat].swing);
     commit(shared.hits);
   }, [commit]);
 
@@ -199,10 +231,14 @@ export default function DrumMachine() {
     if (!engine.playing) await play();
   };
 
-  const tap = (pad: number, vel: number) => {
-    const v = kitRef.current.voices[pad];
-    engine.hit(v.kind, v.patch, vel, v.note);
+  const audition = (pad: number, vel: number) => {
+    const { kind, patch, note } = padsRef.current[pad].voice;
+    engine.hit(kind, patch, vel, note);
     flash(pad);
+  };
+
+  const tap = (pad: number, vel: number) => {
+    audition(pad, vel);
     navigator.vibrate?.(8);
     if (!recRef.current || engine.position < 0) return;
     const s = Math.round(engine.position) % STEPS; // nearest 16th
@@ -214,10 +250,7 @@ export default function DrumMachine() {
   const toggleCell = (pad: number, s: number) => {
     const on = !hitsRef.current[pad][s];
     commit(hitsRef.current.map((row, p) => (p === pad ? row.map((v, i) => (i === s ? on : v)) : row)));
-    if (on) {
-      const v = kitRef.current.voices[pad];
-      engine.hit(v.kind, v.patch, 0.8, v.note); // audition only, never records
-    }
+    if (on) audition(pad, 0.8); // never records
   };
 
   const undo = () => {
@@ -231,23 +264,20 @@ export default function DrumMachine() {
     commit(emptyHits());
   };
 
-  const starter = () => {
-    commit(fromGroove(KITS[kitIdx].groove));
+  // choosing a beat loads its drums and melody and starts playing, ready to play over
+  const pickBeat = (i: number) => {
+    padsRef.current = ALL_PADS[i];
+    setBeatIdx(i);
+    setBpm(BEATS[i].bpm);
+    setSwing(BEATS[i].swing);
     lastTaps.current = [];
-    setBpm(KITS[kitIdx].bpm);
+    commit(fromGroove(BEATS[i].groove));
     if (!engine.playing) play();
-  };
-
-  const pickKit = (i: number) => {
-    setKitIdx(i);
-    if (!hitsRef.current.some((r) => r.some(Boolean))) setBpm(KITS[i].bpm);
-    const v = KITS[i].voices[0];
-    engine.hit(v.kind, v.patch, 0.9, v.note); // preview the new kit with its kick
   };
 
   const share = async () => {
     const url = new URL(window.location.href);
-    url.search = `?d=${encode(kitIdx, bpm, hits)}`;
+    url.search = `?d=${encode(beatIdx, bpm, hits)}`;
     if (navigator.share && matchMedia('(pointer: coarse)').matches) {
       await navigator.share({ title: 'Mein Beat', url: url.toString() }).catch(() => {});
     } else if (await copyText(url.toString())) {
@@ -259,129 +289,130 @@ export default function DrumMachine() {
   const empty = !hits.some((r) => r.some(Boolean));
 
   return (
-    <main className="mx-auto flex max-w-[520px] flex-col gap-3.5 p-4 sm:p-6">
-      <header>
-        <p className="silk">Yamaha · Drum Machine</p>
-        <h1 className="mt-1 text-[22px] leading-tight font-bold text-white sm:text-[26px]">Tipp die Pads, nimm deinen Beat auf</h1>
-      </header>
+    <main className="mx-auto max-w-[520px] p-3 sm:p-5">
+      <HardwareChassis>
+        <div className="grid gap-3">
+          <OledDisplay engine={engine} bpm={bpm} swing={swing} preset={beat.name.toUpperCase()} step={step} cutoff={cutoffFromNorm(filt)} drive={0} fx={rec ? '● REC' : null} mini />
 
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Kit">
-        {KITS.map((k, i) => (
-          <button
-            key={k.name}
-            type="button"
-            role="radio"
-            aria-checked={kitIdx === i}
-            onClick={() => pickKit(i)}
-            className={`keycap flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-semibold ${kitIdx === i ? 'text-white' : 'text-white/55'}`}
-          >
-            <span className={`led ${kitIdx === i ? 'led-on' : ''}`} style={{ ['--c' as string]: '#FF5500' }} aria-hidden />
-            {k.name}
-          </button>
-        ))}
-      </div>
+          <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Beat-Vorlage">
+            {BEATS.map((b, i) => (
+              <button
+                key={b.name}
+                type="button"
+                role="radio"
+                aria-checked={beatIdx === i}
+                onClick={() => pickBeat(i)}
+                title={b.hint}
+                className={`keycap flex items-center justify-center gap-1.5 py-2.5 text-[13px] font-semibold ${beatIdx === i ? 'text-white' : 'text-white/55'} ${empty && !playing ? 'animate-[hint_2.4s_ease-in-out_infinite]' : ''}`}
+              >
+                <span className={`led ${beatIdx === i ? 'led-on' : ''}`} style={{ ['--c' as string]: '#FF5500' }} aria-hidden />
+                {b.name}
+              </button>
+            ))}
+          </div>
 
-      {/* pads */}
-      <section className="grid grid-cols-4 gap-2.5" aria-label="Drum-Pads">
-        {PADS.map((p, i) => (
-          <button
-            key={p.label}
-            type="button"
-            aria-label={`${p.label} spielen`}
-            onPointerDown={(e) => {
-              const r = e.currentTarget.getBoundingClientRect();
-              tap(i, 0.55 + 0.45 * (1 - (e.clientY - r.top) / r.height)); // higher on the pad = harder hit
-            }}
-            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !e.repeat && (e.preventDefault(), tap(i, 0.9))}
-            data-on={lit[i] > 0}
-            data-head={lit[i] > 0}
-            style={{ ['--c' as string]: p.color }}
-            className="pad relative aspect-[3/4] w-full touch-manipulation rounded-2xl! select-none sm:aspect-square"
-          >
-            <span className="absolute inset-x-3 bottom-2.5 h-1 rounded-full opacity-70" style={{ background: p.color }} aria-hidden />
-            <span className="absolute inset-x-0 top-2.5 text-center font-mono text-[10.5px] font-semibold text-white/70" aria-hidden>
-              {p.label}
-            </span>
-          </button>
-        ))}
-      </section>
+          {/* top row: drums, bottom row: notes of the scale */}
+          <section className="grid grid-cols-4 gap-2" aria-label="Drum-Pads">
+            {pads.map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`${p.label} spielen`}
+                onPointerDown={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  tap(i, 0.55 + 0.45 * (1 - (e.clientY - r.top) / r.height)); // higher on the pad = harder hit
+                }}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !e.repeat && (e.preventDefault(), tap(i, 0.9))}
+                data-on={lit[i] > 0}
+                data-head={lit[i] > 0}
+                style={{ ['--c' as string]: p.color }}
+                className="pad relative aspect-[5/4] w-full touch-manipulation rounded-2xl! select-none sm:aspect-[3/2]"
+              >
+                <span className="absolute inset-x-3 bottom-2.5 h-1 rounded-full opacity-70" style={{ background: p.color }} aria-hidden />
+                <span className={`absolute inset-x-0 top-2.5 text-center font-mono text-[10.5px] font-semibold ${lit[i] > 0 ? 'text-black/70' : 'text-white/70'}`} aria-hidden>
+                  {p.label}
+                </span>
+              </button>
+            ))}
+          </section>
 
-      {/* loop roll: what you recorded; tap a cell to add or remove a hit */}
-      <section className="well rounded-2xl p-2.5" aria-label="Aufgenommene Schläge">
-        <div className="grid gap-[3px]">
-          {PADS.map((p, pi) => (
-            <div key={p.label} className="grid grid-cols-16 gap-[3px]" style={{ ['--c' as string]: p.color }}>
-              {hits[pi].map((on, s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => toggleCell(pi, s)}
-                  aria-pressed={on}
-                  aria-label={`${p.label} Schritt ${s + 1}`}
-                  data-on={on}
-                  data-head={s === step}
-                  className={`pad h-[13px] w-full touch-manipulation rounded-[3px]! ${s % 4 === 0 && !on ? 'bg-[#2a2c34]!' : ''}`}
-                />
+          {/* loop roll: what is recorded; tap a cell to add or remove a hit */}
+          <section className="well rounded-xl p-2" aria-label="Aufgenommene Schläge">
+            <div className="grid gap-[3px]">
+              {pads.map((p, pi) => (
+                <div key={pi} className="grid grid-cols-16 gap-[3px]" style={{ ['--c' as string]: p.color }}>
+                  {hits[pi].map((on, s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggleCell(pi, s)}
+                      aria-pressed={on}
+                      aria-label={`${p.label} Schritt ${s + 1}`}
+                      data-on={on}
+                      data-head={s === step}
+                      className={`pad h-[11px] w-full touch-manipulation rounded-[3px]! ${s % 4 === 0 && !on ? 'bg-[#2a2c34]!' : ''}`}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
-          ))}
+          </section>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={toggleRec}
+              aria-pressed={rec}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white ${rec ? 'bg-[#e11d48] animate-[claim-pulse_1.2s_ease-in-out_infinite]' : 'bg-[#7b2cbf]'}`}
+            >
+              <span className={`h-3 w-3 rounded-full ${rec ? 'bg-white' : 'bg-[#ff5a7a]'}`} aria-hidden />
+              {rec ? 'Aufnahme…' : 'REC'}
+            </button>
+            <button type="button" onClick={togglePlay} className="keycap flex items-center justify-center gap-2 py-3.5 text-[15px] font-bold text-white">
+              {playing ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+              {playing ? 'Stop' : 'Play'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setMetro((m) => !m)}
+              aria-pressed={metro}
+              className={`keycap flex items-center justify-center gap-1.5 py-2.5 text-[12.5px] font-semibold ${metro ? 'text-white' : 'text-white/55'}`}
+            >
+              <span className={`led ${metro ? 'led-on' : ''}`} style={{ ['--c' as string]: '#F5B700' }} aria-hidden />
+              <Metronome size={15} /> Metronom
+            </button>
+            <button type="button" onClick={undo} className="keycap flex items-center justify-center gap-1.5 py-2.5 text-[12.5px] font-semibold text-white/70">
+              <Undo2 size={15} /> Zurück
+            </button>
+            <button type="button" onClick={clear} className="keycap flex items-center justify-center gap-1.5 py-2.5 text-[12.5px] font-semibold text-white/70">
+              <Eraser size={15} /> Leeren
+            </button>
+          </div>
+
+          <div className="well grid grid-cols-4 place-items-center rounded-xl px-2 py-3">
+            <Knob label="Tempo" value={(bpm - BPM_MIN) / (BPM_MAX - BPM_MIN)} display={`${bpm} BPM`} color="#FF5500" defaultValue={(beat.bpm - BPM_MIN) / (BPM_MAX - BPM_MIN)} onChange={(v) => setBpm(Math.round(BPM_MIN + v * (BPM_MAX - BPM_MIN)))} />
+            <Knob label="Swing" value={swing / 0.5} display={`${Math.round(swing * 100)}%`} color="#9D4EDD" defaultValue={beat.swing / 0.5} onChange={(v) => setSwing(v * 0.5)} />
+            <Knob label="Filter" value={filt} display={`${Math.round(cutoffFromNorm(filt))} Hz`} color="#00F5D4" defaultValue={1} onChange={setFilt} />
+            <Knob label="Space" value={space} display={`${Math.round(space * 100)}%`} color="#10B981" defaultValue={DEFAULT_MIX.space} onChange={setSpace} />
+          </div>
+
+          <p className="min-h-[16px] text-center text-[12px] text-white/50" aria-live="polite">
+            {rec ? 'Tipp jetzt die Pads, der Loop läuft mit.' : empty ? 'Wähl oben einen Beat oder tipp einfach die Pads.' : 'Unten die Pads sind Töne: spiel eine Melodie. REC speichert sie.'}
+          </p>
+
+          <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-2.5 text-[12.5px]">
+            <button type="button" onClick={share} className="flex items-center gap-1 text-white/60 hover:text-white">
+              {copied ? <Check size={14} className="text-cyan" /> : <Share2 size={14} />} {copied ? 'Link kopiert' : 'Beat teilen'}
+            </button>
+            <a href={PRODUCT_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-semibold text-[#c9a2f0] hover:text-white">
+              Groovebox entdecken <ExternalLink size={13} />
+            </a>
+          </footer>
         </div>
-      </section>
-
-      {/* transport */}
-      <div className="grid grid-cols-[1.3fr_1fr_auto_auto] gap-2">
-        <button
-          type="button"
-          onClick={toggleRec}
-          aria-pressed={rec}
-          className={`flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white ${rec ? 'bg-[#e11d48] animate-[claim-pulse_1.2s_ease-in-out_infinite]' : 'bg-[#7b2cbf]'}`}
-        >
-          <span className={`h-3 w-3 rounded-full ${rec ? 'bg-white' : 'bg-[#ff5a7a]'}`} aria-hidden />
-          {rec ? 'Aufnahme…' : 'REC'}
-        </button>
-        <button type="button" onClick={togglePlay} className="keycap flex items-center justify-center gap-2 py-3.5 text-[15px] font-bold text-white">
-          {playing ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
-          {playing ? 'Stop' : 'Play'}
-        </button>
-        <IconButton label="Letzten Schlag zurücknehmen" onClick={undo}>
-          <Undo2 size={19} />
-        </IconButton>
-        <IconButton label="Alles löschen" onClick={clear}>
-          <Eraser size={19} />
-        </IconButton>
-      </div>
-
-      <label className="flex items-center gap-3">
-        <span className="silk w-12 shrink-0">Tempo</span>
-        <input type="range" min={70} max={160} value={bpm} onChange={(e) => setBpm(Number(e.target.value))} aria-label="Tempo" className="h-8 w-full accent-[#9D4EDD]" />
-        <span className="silk w-12 shrink-0 text-right">{bpm}</span>
-      </label>
-
-      <p className="min-h-[18px] text-center text-[12.5px] text-white/50" aria-live="polite">
-        {rec ? 'Tipp jetzt die Pads, der Loop läuft mit.' : empty ? 'Tipp die Pads. Für einen Loop: REC drücken und losspielen.' : 'Mehr Schichten? Nochmal REC und weitertippen.'}
-      </p>
-
-      <footer className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-[12.5px]">
-        <div className="flex items-center gap-4">
-          <button type="button" onClick={starter} className="flex items-center gap-1 text-white/60 hover:text-white">
-            <Sparkles size={14} /> Start-Beat
-          </button>
-          <button type="button" onClick={share} className="flex items-center gap-1 text-white/60 hover:text-white">
-            {copied ? <Check size={14} className="text-cyan" /> : <Share2 size={14} />} {copied ? 'Link kopiert' : 'Teilen'}
-          </button>
-        </div>
-        <a href={PRODUCT_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-semibold text-[#c9a2f0] hover:text-white">
-          Groovebox entdecken <ExternalLink size={13} />
-        </a>
-      </footer>
+      </HardwareChassis>
     </main>
-  );
-}
-
-function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} className="keycap grid w-12 place-items-center text-white/80">
-      {children}
-    </button>
   );
 }

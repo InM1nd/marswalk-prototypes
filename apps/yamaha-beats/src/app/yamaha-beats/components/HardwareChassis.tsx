@@ -39,12 +39,14 @@ interface OledProps {
   drive: number;
   /** Held performance effect, shown in the status line. */
   fx?: string | null;
+  /** Drum-machine variant: no FM drive readout, and `fx` is shown as-is (e.g. "● REC"). */
+  mini?: boolean;
 }
 
 const fmtHz = (hz: number) => (hz >= 1000 ? `${(hz / 1000).toFixed(1)}k` : `${Math.round(hz)}`);
 
 /** Recessed OLED: 60fps dot-matrix spectrum + waveform from the master AnalyserNode, plus telemetry. */
-export function OledDisplay({ engine, bpm, swing, preset, step, cutoff, drive, fx }: OledProps) {
+export function OledDisplay({ engine, bpm, swing, preset, step, cutoff, drive, fx, mini }: OledProps) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -129,8 +131,8 @@ export function OledDisplay({ engine, bpm, swing, preset, step, cutoff, drive, f
       <div className={`flex items-center gap-4 ${text}`}>
         <span className={step >= 0 ? 'text-cyan' : ''}>STEP {String(Math.max(step, 0) + 1).padStart(2, '0')}/{STEPS}</span>
         <span>LPF {fmtHz(cutoff)}</span>
-        <span>FM DRV {Math.round(drive * 100)}%</span>
-        <span className={`ml-auto ${fx ? 'text-orange' : 'opacity-60'}`}>{fx ? `FX ${fx.toUpperCase()}` : step >= 0 ? '▶ PLAY' : '■ STOP'}</span>
+        {!mini && <span>FM DRV {Math.round(drive * 100)}%</span>}
+        <span className={`ml-auto ${fx ? 'text-orange' : 'opacity-60'}`}>{fx ? (mini ? fx : `FX ${fx.toUpperCase()}`) : step >= 0 ? '▶ PLAY' : '■ STOP'}</span>
       </div>
     </div>
   );

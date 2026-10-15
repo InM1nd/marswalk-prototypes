@@ -393,6 +393,16 @@ export class YamahaAudioEngine {
     else this.hat(t, vel, patch as HatPatch);
   }
 
+  /** Metronome tick straight to the master (skips the filter and FX), accented on the downbeat. */
+  click(t: number, accent: boolean) {
+    const o = this.ctx!.createOscillator();
+    o.type = 'square';
+    o.frequency.value = accent ? 1760 : 1175;
+    o.connect(this.env(t, accent ? 0.2 : 0.12, 0.035, 0.001)).connect(this.master);
+    o.start(t);
+    o.stop(t + 0.06);
+  }
+
   /** Same, right now (finger pads). Unlocks audio on the first call. */
   async hit(kind: 'lead' | 'bass' | 'snare' | 'hat', patch: LeadPatch | BassPatch | SnarePatch | HatPatch, vel: number, note = 60) {
     await this.unlock();
