@@ -150,6 +150,8 @@ export class YamahaAudioEngine {
   muted = [false, false, false, false];
   /** Fires on the audio clock (not the scheduling clock) with the step that is sounding; -1 on stop. */
   onStep?: (step: number) => void;
+  /** Fires from the scheduler for every step it queues, with the exact audio time: lets a caller layer its own voices on the clock. */
+  onSchedule?: (step: number, time: number) => void;
 
   private ctx: AudioContext | null = null;
   private bus!: GainNode;
@@ -177,6 +179,7 @@ export class YamahaAudioEngine {
   private raf = 0;
   private ui: { step: number; time: number }[] = [];
   private current = 0;
+  private currentStart = 0;
 
   private ensure(): AudioContext {
     if (this.ctx) return this.ctx;
@@ -295,6 +298,13 @@ export class YamahaAudioEngine {
     return this.playing ? this.current : -1;
   }
 
+  /** Playhead as a fractional step (0..16), -1 when stopped. Round it to quantize a live tap. */
+  get position() {
+    if (!this.playing || !this.ctx) return -1;
+    const dur = 60 / this.bpm / 4;
+    return this.current + Math.min(1, Math.max(0, (this.ctx.currentTime - this.currentStart) / dur));
+  }
+
   /** Restart the pattern from step 1 (used to start a recording on the downbeat). */
   restart() {
     if (!this.ctx) return;
@@ -375,6 +385,20 @@ export class YamahaAudioEngine {
     this.voice(track, this.ctx!.currentTime + 0.005, velocity, this.playing ? this.current : 0);
   }
 
+  /** Play any patch (not just the track's selected one) at an audio time. note is MIDI, used by lead and bass. */
+  playAt(kind: 'lead' | 'bass' | 'snare' | 'hat', patch: LeadPatch | BassPatch | SnarePatch | HatPatch, t: number, vel: number, note = 60) {
+    if (kind === 'lead') this.lead(t, [note], vel, patch as LeadPatch);
+    else if (kind === 'bass') this.bass(t, note, vel, patch as BassPatch);
+    else if (kind === 'snare') this.snare(t, vel, patch as SnarePatch);
+    else this.hat(t, vel, patch as HatPatch);
+  }
+
+  /** Same, right now (finger pads). Unlocks audio on the first call. */
+  async hit(kind: 'lead' | 'bass' | 'snare' | 'hat', patch: LeadPatch | BassPatch | SnarePatch | HatPatch, vel: number, note = 60) {
+    await this.unlock();
+    this.playAt(kind, patch, this.ctx!.currentTime + 0.005, vel, note);
+  }
+
   // requestAnimationFrame drives the scheduler; Web Audio's own clock keeps the timing exact.
   private loop = () => {
     const ctx = this.ctx!;
@@ -390,13 +414,16 @@ export class YamahaAudioEngine {
       const st = this.stutter;
       const s = st ? (st.from + ((this.step - st.from + STEPS) % STEPS) % st.len) % STEPS : this.step;
       for (let tr = 0; tr < TRACKS.length; tr++) if (this.pattern[tr][s] && !this.muted[tr]) this.voice(tr, t, 1, s);
+      this.onSchedule?.(s, t);
       this.ui.push({ step: s, time: t });
       this.nextTime += dur;
       this.step = (this.step + 1) % STEPS;
     }
 
     while (this.ui.length && this.ui[0].time <= ctx.currentTime) {
-      this.current = this.ui.shift()!.step;
+      const next = this.ui.shift()!;
+      this.current = next.step;
+      this.currentStart = next.time;
       this.onStep?.(this.current);
     }
     if (this.playing) this.raf = requestAnimationFrame(this.loop);

@@ -16,6 +16,7 @@ export const config: VercelConfig = {
     { source: '/advent/:path*', destination: '/advent/index.html' },
     // embeddable widget; without this, /yamaha-beats/mini (no slash) would fall through to the studio
     { source: '/yamaha-beats/mini', destination: '/yamaha-beats/mini/index.html' },
+    { source: '/yamaha-beats/drums', destination: '/yamaha-beats/drums/index.html' },
     { source: '/yamaha-beats/:path*', destination: '/yamaha-beats/index.html' },
   ],
 };
